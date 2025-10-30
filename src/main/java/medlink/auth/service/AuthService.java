@@ -30,7 +30,7 @@ public class AuthService {
     public void signUp(SignUpRequest req) {
         // 1) 아이디 중복 확인
         if (!isLoginIdAvailable(req.getLoginId())) {
-            throw new GlobalException(ErrorStatus.DUPLICATE_LOGIN_EMAIL);
+            throw new GlobalException(ErrorStatus.DUPLICATE_LOGIN_ID);
         }
 
         // 2) 비번 인코드
