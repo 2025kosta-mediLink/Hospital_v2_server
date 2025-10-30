@@ -7,8 +7,8 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 public class SignUpRequest {
     @NotBlank
