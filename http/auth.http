@@ -1,0 +1,67 @@
+### environments
+@base = {{host}}/auth
+
+############################################################
+### 1. 아이디 중복 체크
+############################################################
+GET {{base}}/check-id?loginId=test1
+Accept: application/json
+
+############################################################
+### 2. 회원가입
+############################################################
+POST {{base}}/sign-up
+Content-Type: application/json
+Accept: application/json
+
+{
+  "loginId": "testuser",
+  "password": "testPass123!",
+  "name": "홍길동",
+  "phone": "010-1234-5678",
+  "gender": "M",
+  "address": "부산시 동래구 어디",
+  "rrn": "900101-1234567"
+}
+
+############################################################
+### 3. 로그인
+### 세션 생성
+############################################################
+POST {{base}}/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "loginId": "testuser",
+  "password": "testPass123!"
+}
+
+
+> {%
+    // 로그인 응답에서 Set-Cookie 헤더 꺼내서 전역 변수로 저장
+    const setCookie = response.headers.valueOf("Set-Cookie");
+    client.global.set("cookie", setCookie);
+%}
+
+############################################################
+### 4. 로그아웃
+### 세션 무효화
+############################################################
+POST {{base}}/logout
+Accept: application/json
+
+> {%
+    client.test("logout ok", function() {
+        // 컨트롤러는 @ResponseStatus(NO_CONTENT)인데 ApiResponse도 리턴하니까
+        // 구현에 따라 200 or 204 나올 수 있음 -> 둘 다 허용
+        client.assert(response.status === 200 || response.status === 204, "status should be 200 or 204");
+    });
+%}
+
+############################################################
+### 5. 내 정보 조회
+############################################################
+GET {{base}}/me
+Accept: application/json
+Cookie: {{cookie}}

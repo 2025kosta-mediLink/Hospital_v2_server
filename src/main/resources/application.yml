@@ -1,0 +1,41 @@
+server:
+  servlet:
+    session:
+      timeout: 60m                       # 세션 타임아웃
+      cookie:
+        http-only: true                  # JS 접근 차단(보안)
+        secure: ${SESSION_COOKIE_SECURE:false}  # HTTPS만 전송(운영 true 권장)
+        same-site: ${SESSION_SAMESITE:Lax}      # Lax -> 같은 호스트 url 가능
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # JDBC_URL=jdbc:mysql://localhost:3306/{스키마명}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
+    url: ${JDBC_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: ${DDL_AUTO}  # none|validate|update|create|create-drop
+      dialect: org.hibernate.dialect.MySQL8Dialect
+    properties:
+      hibernate:
+        format_sql: true
+        highlight_sql: true
+
+cors:
+  allowed-origin: ${CORS_ALLOWED_ORIGIN}
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+
+swagger:
+  auth:
+    whitelist: "/login,/logout,/health"
+springdoc:
+  swagger-ui:
+    doc-expansion: none
+    persist-authorization: true # 브라우저 탭 내 인증 유지
