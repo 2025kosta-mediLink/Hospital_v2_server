@@ -1,8 +1,8 @@
 server:
   servlet:
     session:
-      timeout: 60m                       # 세션 타임아웃
       cookie:
+        name: MEDLINKSESSION
         http-only: true                  # JS 접근 차단(보안)
         secure: ${SESSION_COOKIE_SECURE:false}  # HTTPS만 전송(운영 true 권장)
         same-site: ${SESSION_SAMESITE:Lax}      # Lax -> 같은 호스트 url 가능
@@ -24,6 +24,17 @@ spring:
       hibernate:
         format_sql: true
         highlight_sql: true
+
+  session:
+    store-type: redis       # ← 세션을 redis에 저장
+    timeout: 60m              # ← 세션 타임아웃 60분
+    redis:
+      namespace: medlink:sessions  # 키 prefix
+
+    data:
+      redis:
+        host: localhost
+        port: 6379
 
 cors:
   allowed-origin: ${CORS_ALLOWED_ORIGIN}
