@@ -70,12 +70,12 @@ public class AuthController {
     }
 
     /**
-     * 로그인 사용자 정보 추출 방식
+     * 로그인 사용자 uuid 추출 방식
      */
     @GetMapping("/me")
-    public ApiResponse<MemberSessionResponse> me(HttpServletRequest req) {
-        var user = AuthSessionUtil.getLoginUserOrNull(req);
-        if (user == null) throw new GlobalException(ErrorStatus.UNAUTHORIZED);
-        return ApiResponse.onSuccess(user);
+    public ApiResponse<String> me(HttpServletRequest req) {
+        String uuid = AuthSessionUtil.getUuidOrNull(req);
+        if (uuid == null) throw new GlobalException(ErrorStatus.UNAUTHORIZED);
+        return ApiResponse.onSuccess(uuid);
     }
 }
