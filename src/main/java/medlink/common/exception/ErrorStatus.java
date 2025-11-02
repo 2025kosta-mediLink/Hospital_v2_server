@@ -21,6 +21,8 @@ public enum ErrorStatus {
     SIGNUP_FAIL("AUTH104", "회원가입에 실패했습니다."),
     NOT_FOUND_ERP_ACCOUNT("AUTH105", "계정을 찾을 수 없습니다."),
 
+    // MEMBER
+    MEMBER_NOT_FOUND("MEMBER201", "회원을 찾을 수 없습니다.")
   ;
 
 
