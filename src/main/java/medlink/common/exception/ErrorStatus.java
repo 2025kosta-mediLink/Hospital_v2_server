@@ -22,8 +22,14 @@ public enum ErrorStatus {
     NOT_FOUND_ERP_ACCOUNT("AUTH105", "계정을 찾을 수 없습니다."),
 
     // MEMBER
-    MEMBER_NOT_FOUND("MEMBER201", "회원을 찾을 수 없습니다.")
-  ;
+    MEMBER_NOT_FOUND("MEMBER201", "회원을 찾을 수 없습니다."),
+
+    // DEPARTMENT
+    DEPARTMENT_NOT_FOUND("DEPT301", "부서를 찾을 수 없습니다."),
+
+    // DOCTOR
+    DOCTOR_NOT_REGISTERED("DOC401", "해당 부서에 등록된 의사가 없습니다."),
+    DOCTOR_NOTICE_NOT_REGISTERED("DOC402", "해당 의사나 공지 기간에 일치하는 공지가 없습니다.");
 
 
     private final HttpStatus httpStatus;
