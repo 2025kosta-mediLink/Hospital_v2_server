@@ -1,0 +1,202 @@
+### environments
+@api = {{host}}
+@auth = {{api}}/auth
+
+############################################################
+### 0. 세션 확인 (로그인 선행 필요)
+############################################################
+GET {{auth}}/me
+Accept: application/json
+Cookie: {{cookie}}
+
+> {%
+    client.test("session ok", function () {
+        client.assert(response.status === 200, "200 expected");
+        client.assert(response.body && response.body.data, "uuid should be in ApiResponse.data");
+        client.log("uuid = " + response.body.data);
+    });
+%}
+
+############################################################
+### 1. 접수 진입 분기 (오늘 예약 존재 여부)
+############################################################
+GET {{api}}/receptions/entry
+Accept: application/json
+Cookie: {{cookie}}
+
+> {%
+    client.test("entry ok", function () {
+        client.assert(response.status === 200, "200 expected");
+        const hasToday = response.body?.data?.hasTodayReservation;
+        client.assert(typeof hasToday === "boolean", "hasTodayReservation must be boolean");
+        client.log("hasTodayReservation = " + hasToday);
+    });
+%}
+
+############################################################
+### 2. (선택) 오늘 예약 목록
+###  - 예약 기반 접수를 테스트할 때만 사용
+############################################################
+GET {{api}}/reservations/today
+Accept: application/json
+Cookie: {{cookie}}
+
+> {%
+    client.test("today reservations ok (optional)", function () {
+        client.assert(response.status === 200, "200 expected");
+        const list = response.body?.data || [];
+        client.log("today reservations count = " + list.length);
+        if (list.length > 0) {
+            // 필요 시 첫 예약을 저장해 사용
+            client.global.set("reservationId", list[0].reservationId || list[0].id);
+            client.log("reservationId = " + client.global.get("reservationId"));
+        }
+    });
+%}
+
+############################################################
+### 3. 부서 목록 조회 → departmentId 저장
+############################################################
+GET {{api}}/department/list
+Accept: application/json
+Cookie: {{cookie}}
+
+> {%
+    client.test("department list ok", function () {
+        client.assert(response.status === 200, "200 expected");
+        const arr = response.body?.data || [];
+        client.assert(Array.isArray(arr) && arr.length > 0, "departments should not be empty");
+        const deptId = arr[0].departmentId || arr[0].id;
+        client.global.set("departmentId", deptId);
+        client.log("departmentId = " + deptId);
+    });
+%}
+
+############################################################
+### 4. 부서별 의사 목록 → doctorId 저장
+############################################################
+GET {{api}}/doctor/list/department/{{departmentId}}
+Accept: application/json
+Cookie: {{cookie}}
+
+> {%
+    client.test("doctor list ok", function () {
+        client.assert(response.status === 200, "200 expected");
+        const arr = response.body?.data || [];
+        client.assert(Array.isArray(arr) && arr.length > 0, "doctors should not be empty");
+        const docId = arr[0].doctorId || arr[0].id;
+        client.global.set("doctorId", docId);
+        client.log("doctorId = " + docId);
+    });
+%}
+
+############################################################
+### 5. 증상 목록 → symptomIds 저장 (최대 2개)
+############################################################
+GET {{api}}/symptoms
+Accept: application/json
+Cookie: {{cookie}}
+
+> {%
+    client.test("symptom list ok", function () {
+        client.assert(response.status === 200, "200 expected");
+        const arr = response.body?.data || [];
+        client.assert(Array.isArray(arr) && arr.length > 0, "symptoms should not be empty");
+        const ids = arr.slice(0, Math.min(2, arr.length)).map(s => s.symptomId || s.id);
+        client.global.set("symptomIds", JSON.stringify(ids));
+        client.log("symptomIds = " + JSON.stringify(ids));
+    });
+%}
+
+############################################################
+### 6. 접수 생성 (DIRECT) → receptionId 저장
+############################################################
+POST {{api}}/receptions
+Content-Type: application/json
+Accept: application/json
+Cookie: {{cookie}}
+
+{
+  "doctorId": {{doctorId}},
+  "symptomIds": {{symptomIds}},
+  "noteToDoctor": "테스트: 기침/두통 2일 지속",
+  "consentNotice": true
+}
+
+> {%
+    client.test("create reception ok", function () {
+        client.assert(response.status === 201 || response.status === 200, "201 or 200 expected");
+        const data = response.body?.data;
+        client.assert(data && (data.receptionId || data.id), "receptionId should be in ApiResponse.data");
+        const rid = data.receptionId || data.id;
+        client.global.set("receptionId", rid);
+        client.log("receptionId = " + rid);
+    });
+%}
+
+############################################################
+### 7. 접수 상세 조회
+############################################################
+GET {{api}}/receptions/{{receptionId}}
+Accept: application/json
+Cookie: {{cookie}}
+
+> {%
+    client.test("reception detail ok", function () {
+        client.assert(response.status === 200, "200 expected");
+        const d = response.body?.data;
+        client.assert(d && d.receptionId, "detail.receptionId required");
+        client.assert(!!d.status, "status required");
+        client.log("receptionNo = " + d.receptionNo + ", status = " + d.status);
+    });
+%}
+
+############################################################
+### 8. 내 접수 목록 (이번 달)
+############################################################
+GET {{api}}/receptions?status=ALL&month={{$datetime "YYYY-MM"}}
+Accept: application/json
+Cookie: {{cookie}}
+
+> {%
+    client.test("my receptions ok", function () {
+        client.assert(response.status === 200, "200 expected");
+        const list = response.body?.data || [];
+        client.assert(Array.isArray(list), "list required");
+        client.log("list count = " + list.length);
+    });
+%}
+
+############################################################
+### 9. 접수 취소
+############################################################
+POST {{api}}/receptions/{{receptionId}}/cancel
+Content-Type: application/json
+Accept: application/json
+Cookie: {{cookie}}
+
+{
+  "reason": "테스트 취소"
+}
+
+> {%
+    client.test("cancel ok", function () {
+        client.assert(response.status === 200, "200 expected");
+    });
+%}
+
+############################################################
+### 10. 취소 반영 확인 (상세 재조회 → CANCELLED)
+############################################################
+GET {{api}}/receptions/{{receptionId}}
+Accept: application/json
+Cookie: {{cookie}}
+
+> {%
+    client.test("cancelled detail ok", function () {
+        client.assert(response.status === 200, "200 expected");
+        const d = response.body?.data;
+        client.assert(d && d.status, "status required");
+        client.assert(d.status === "CANCELLED", "status should be CANCELLED");
+    });
+%}

@@ -4,12 +4,11 @@ import lombok.*;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 public class ReceptionIdResponse {
-  private Long receptionId;
-
-  public static ReceptionIdResponse of(Long id) {
-    return ReceptionIdResponse.builder().receptionId(id).build();
-  }
+    private Long receptionId;
+    public static ReceptionIdResponse of(Long id) {
+        return ReceptionIdResponse.builder().receptionId(id).build();
+    }
 }

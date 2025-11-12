@@ -40,6 +40,7 @@ public class Reception extends BaseTimeEntity {
   @Column(nullable = false)
   private ReceptionType type; // RESERVATION, DIRECT
 
+  @Setter
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private ReceptionStatus status; // WAITING, IN_SERVICE, DONE, CANCELLED
@@ -52,4 +53,5 @@ public class Reception extends BaseTimeEntity {
 
   @Column(length = 500)
   private String noteToDoctor;
+
 }

@@ -27,6 +27,7 @@ public class WaitingTicket extends BaseTimeEntity {
   @Column(nullable = false)
   private Integer queueNo;
 
+  @Setter
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private WaitingTicketStatus status; // WAITING, CALLED, IN_SERVICE, DONE, CANCELLED, SKIPPED
@@ -36,4 +37,6 @@ public class WaitingTicket extends BaseTimeEntity {
   private LocalDateTime estimatedCallTime;
 
   private LocalDateTime calledAt;
+
+
 }
