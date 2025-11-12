@@ -8,7 +8,6 @@ import medlink.doctor.entity.DoctorNotice;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 public class DoctorNoticeResponse {
-  // 공지 나타내는 날짜 끝난 건 조회하지 말기
     private long noticeId;
     private String content;
     private int priority;

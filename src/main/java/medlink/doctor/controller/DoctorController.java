@@ -2,6 +2,7 @@ package medlink.doctor.controller;
 
 import lombok.RequiredArgsConstructor;
 import medlink.common.response.ApiResponse;
+import medlink.doctor.dto.response.DoctorNoticeResponse;
 import medlink.doctor.dto.response.DoctorResponse;
 import medlink.doctor.service.DoctorService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,7 +20,7 @@ public class DoctorController {
     private final DoctorService doctorService;
 
     /**
-     * 부서 ID로 의사 목록 조회
+     * 부서별 의사 목록 조회
      */
     @GetMapping("/list/department/{departmentId}")
     public ApiResponse<List<DoctorResponse>> getDoctorsByDepartmentId(
@@ -28,5 +29,17 @@ public class DoctorController {
         List<DoctorResponse> doctorResponses =
                 doctorService.getDoctorsByDepartmentId(departmentId);
         return ApiResponse.onSuccess(doctorResponses);
+    }
+
+    /**
+     * 의사별 공지사항 조회
+     */
+    @GetMapping("/{doctorId}/notices")
+    public ApiResponse<List<DoctorNoticeResponse>> getDoctorNotices(
+            @PathVariable Long doctorId) {
+
+        List<DoctorNoticeResponse> noticeResponses =
+                doctorService.getDoctorNotices(doctorId);
+        return ApiResponse.onSuccess(noticeResponses);
     }
 }
