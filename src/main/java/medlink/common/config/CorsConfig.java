@@ -9,7 +9,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
 
-    @Value("${cors.allowed-origins:${CORS_ALLOWED_ORIGIN:}}")
+    @Value("${cors.allowed-origin}")
     private String allowedOriginsRaw;
 
     @Override
@@ -18,8 +18,8 @@ public class CorsConfig implements WebMvcConfigurer {
 
         registry.addMapping("/**")
                 .allowedOriginPatterns(origins)
-                .allowedMethods("GET","POST","PUT","PATCH","DELETE","OPTIONS")
-                .allowedHeaders("Content-Type","Accept","X-Requested-With","X-CSRF-Token")
+                .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+                .allowedHeaders("Content-Type", "Accept", "X-Requested-With", "X-CSRF-Token")
                 .exposedHeaders("Set-Cookie")
                 .allowCredentials(true)
                 .maxAge(3600);
