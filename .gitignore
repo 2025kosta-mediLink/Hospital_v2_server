@@ -58,3 +58,7 @@ out/
 ._.DS_Store
 **/.DS_Store
 **/._.DS_Store
+
+### Docker ###
+docker/docker-compose.env
+docker/db-data/

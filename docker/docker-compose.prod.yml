@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  db:
+    env_file:
+      - docker-compose.prod.env       # 프로덕션용 환경변수 파일
+    volumes:
+      - db-data-prod:/var/lib/mysql
+
+volumes:
+  db-data-prod:

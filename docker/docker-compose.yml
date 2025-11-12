@@ -6,12 +6,13 @@ services:
     container_name: hospital-db
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: 1111
-      MYSQL_DATABASE: hospital
-      MYSQL_USER: root
-      MYSQL_PASSWORD: 1111
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: ${TZ:-Asia/Seoul}
     ports:
-      - "3306:3306"
+      - "${DB_PORT:-3306}:3306"
     volumes:
       - db-data:/var/lib/mysql
       - ./initdb/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
