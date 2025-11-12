@@ -12,13 +12,11 @@ import medlink.common.exception.GlobalException;
 import medlink.common.response.ApiResponse;
 import medlink.common.util.AuthSessionUtil;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "/api/v2/auth", produces =
-        MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping("/api/v2/auth")
 public class AuthController {
 
     private final AuthService authService;
