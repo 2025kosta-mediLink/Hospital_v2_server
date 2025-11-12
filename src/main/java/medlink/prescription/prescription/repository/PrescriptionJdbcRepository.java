@@ -52,6 +52,7 @@ public class PrescriptionJdbcRepository {
                 LEFT JOIN pharmacy_prescription pp ON p.prescription_id = pp.prescription_id
                 LEFT JOIN pickup_history ph ON pp.pharmacy_prescription_id = ph.pharmacy_prescription_id
                 WHERE r.member_id = :memberId
+                    AND r.status = 'DONE'
                 ORDER BY p.issued_at DESC
                 """;
 

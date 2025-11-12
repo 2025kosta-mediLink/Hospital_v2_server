@@ -3,7 +3,6 @@ package medlink.prescription.dispensing.repository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import medlink.prescription.dispensing.dto.DispensingStatus;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -32,36 +31,29 @@ public class DispensingJdbcRepository {
         String sql = """
                 SELECT
                     CAST(pp.pharmacy_prescription_id AS CHAR) AS dispensing_id,
-                    COALESCE(ph.pharmacy_name, '선택한 약국') AS pharmacy_name,
-                    ph.address AS pharmacy_address,
-                    ph.phone_number AS pharmacy_phone,
-                    ph.latitude AS pharmacy_latitude,
-                    ph.longitude AS pharmacy_longitude,
+                    COALESCE(pp.pharmacy_name, '선택한 약국') AS pharmacy_name,
+                    NULL AS pharmacy_address,
+                    NULL AS pharmacy_phone,
+                    NULL AS pharmacy_latitude,
+                    NULL AS pharmacy_longitude,
                     pp.status,
                     pp.assigned_pharmacist AS dispenser_name,
                     pp.created_at AS received_at,
                     pp.expected_finish_time AS estimated_completion_time,
-                    COALESCE(phist.pickup_at, pp.completed_at) AS completed_at,
+                    phist.pickup_at AS completed_at,
                     GROUP_CONCAT(DISTINCT pr.content ORDER BY pr.prescription_id SEPARATOR ', ') AS prescription_details,
-                    pp.qr_code
+                    NULL AS qr_code
                 FROM pharmacy_prescription pp
-                LEFT JOIN pharmacies ph ON pp.pharmacy_id = ph.pharmacy_id
                 LEFT JOIN pickup_history phist ON phist.pharmacy_prescription_id = pp.pharmacy_prescription_id
                 LEFT JOIN prescription pr ON pr.prescription_id = pp.prescription_id
                 WHERE pp.pharmacy_prescription_id = :dispensingId
                 GROUP BY pp.pharmacy_prescription_id,
-                         ph.pharmacy_name,
-                         ph.address,
-                         ph.phone_number,
-                         ph.latitude,
-                         ph.longitude,
+                         pp.pharmacy_name,
                          pp.status,
                          pp.assigned_pharmacist,
                          pp.created_at,
                          pp.expected_finish_time,
-                         phist.pickup_at,
-                         pp.completed_at,
-                         pp.qr_code
+                         phist.pickup_at
                 """;
 
         List<DispensingStatus> result = jdbcTemplate.query(
@@ -77,29 +69,14 @@ public class DispensingJdbcRepository {
         String updateSql = """
                 UPDATE pharmacy_prescription
                 SET status = 'RECEIVED_BY_USER',
-                    completed_at = :completedAt,
                     updated_at = NOW()
                 WHERE pharmacy_prescription_id = :dispensingId
                 """;
 
         jdbcTemplate.update(updateSql, new MapSqlParameterSource()
-                .addValue("completedAt", completedAt)
                 .addValue("dispensingId", dispensingId));
 
-        String insertHistory = """
-                INSERT INTO pickup_history (pharmacy_prescription_id, pickup_at, verified_by, created_at)
-                VALUES (:dispensingId, :completedAt, '사용자', NOW())
-                ON DUPLICATE KEY UPDATE pickup_at = VALUES(pickup_at),
-                                        verified_by = VALUES(verified_by)
-                """;
-
-        try {
-            jdbcTemplate.update(insertHistory, new MapSqlParameterSource()
-                    .addValue("dispensingId", dispensingId)
-                    .addValue("completedAt", completedAt));
-        } catch (DataAccessException ex) {
-            log.warn("Failed to upsert pickup_history for dispensingId={}", dispensingId, ex);
-        }
+        // 기록 저장은 후속 작업에서 외부 시스템 연동 시 구현
     }
 
     private static class DispensingRowMapper implements RowMapper<DispensingStatus> {
