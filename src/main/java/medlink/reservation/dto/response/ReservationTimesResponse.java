@@ -11,4 +11,11 @@ import java.util.List;
 public class ReservationTimesResponse {
     private List<String> am;
     private List<String> pm;
+
+    public static ReservationTimesResponse of(List<String> am, List<String> pm) {
+        return ReservationTimesResponse.builder()
+                .am(am)
+                .pm(pm)
+                .build();
+    }
 }

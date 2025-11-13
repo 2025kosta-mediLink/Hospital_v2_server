@@ -29,7 +29,14 @@ public enum ErrorStatus {
 
     // DOCTOR
     DOCTOR_NOT_REGISTERED("DOC401", "해당 부서에 등록된 의사가 없습니다."),
-    DOCTOR_NOTICE_NOT_REGISTERED("DOC402", "해당 의사나 공지 기간에 일치하는 공지가 없습니다.");
+    DOCTOR_NOTICE_NOT_REGISTERED("DOC402", "해당 의사나 공지 기간에 일치하는 공지가 없습니다."),
+    DOCTOR_NOT_FOUND("DOC403", "의사를 찾을 수 없습니다."),
+    DOCTOR_ON_EXCEPTION_DAY("DOC404", "의사의 예외 진료일에 해당합니다."),
+    DOCTOR_WEEKLY_SCHEDULE_NOT_FOUND("DOC405", "의사의 진료 일정이 존재하지 않습니다."),
+
+    // RESERVATION
+    RESERVATION_DATE_OUT_OF_RANGE("RES501", "예약 가능한 날짜가 아닙니다."),
+    ;
 
 
     private final HttpStatus httpStatus;

@@ -1,0 +1,8 @@
+### environments
+@base = {{host}}/reservation
+
+############################################################
+### 1. 날짜별 예약 가능 시간 조회
+############################################################
+GET {{base}}/doctor/1/available-times?date=2025-11-20
+Accept: application/json

@@ -3,6 +3,7 @@ package medlink.doctor.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import medlink.common.base.BaseTimeEntity;
+import medlink.doctor.enums.ExceptionDayType;
 
 import java.time.LocalDate;
 
@@ -26,5 +27,5 @@ public class DoctorExceptionDay extends BaseTimeEntity {
     private LocalDate exceptionDate;
 
     @Column(length = 20, nullable = false)
-    private String type;
+    private ExceptionDayType type;
 }

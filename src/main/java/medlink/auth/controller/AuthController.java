@@ -7,8 +7,6 @@ import medlink.auth.dto.request.LoginRequest;
 import medlink.auth.dto.request.SignUpRequest;
 import medlink.auth.dto.response.MemberSessionResponse;
 import medlink.auth.service.AuthService;
-import medlink.common.exception.ErrorStatus;
-import medlink.common.exception.GlobalException;
 import medlink.common.response.ApiResponse;
 import medlink.common.util.AuthSessionUtil;
 import org.springframework.http.HttpStatus;
@@ -73,7 +71,7 @@ public class AuthController {
     @GetMapping("/me")
     public ApiResponse<String> me(HttpServletRequest req) {
         String uuid = AuthSessionUtil.getUuidOrNull(req);
-        if (uuid == null) throw new GlobalException(ErrorStatus.UNAUTHORIZED);
+
         return ApiResponse.onSuccess(uuid);
     }
 }
