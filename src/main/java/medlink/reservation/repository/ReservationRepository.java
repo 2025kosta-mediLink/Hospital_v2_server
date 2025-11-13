@@ -26,4 +26,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             LocalDateTime appointmentAt,
             ReservationStatus status
     );
+
+
 }

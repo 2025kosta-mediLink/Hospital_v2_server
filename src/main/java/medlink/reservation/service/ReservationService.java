@@ -10,6 +10,7 @@ import medlink.doctor.service.DoctorService;
 import medlink.member.entity.Member;
 import medlink.member.service.MemberService;
 import medlink.reservation.dto.request.ReservationRequest;
+import medlink.reservation.dto.response.ReservationResponse;
 import medlink.reservation.dto.response.ReservationTimesResponse;
 import medlink.reservation.entity.Reservation;
 import medlink.reservation.enums.ReservationStatus;
@@ -108,6 +109,17 @@ public class ReservationService {
         return saved.getReservationId();
     }
 
+    @Transactional(readOnly = true)
+    public ReservationResponse getReservation(Long reservationId, String uuid) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new GlobalException(ErrorStatus.RESERVATION_NOT_FOUND));
+
+        // 예약한 사용자와 조회하는 사용자가 같은지 검증
+        if (!reservation.getMember().getUuid().equals(uuid)) {
+            throw new GlobalException(ErrorStatus.RESERVATION_ACCESS_FORBIDDEN);
+        }
+        return ReservationResponse.from(reservation);
+    }
 
     /** 해당 날짜에 예약된 시간대 조회 */
     @Transactional(readOnly = true)

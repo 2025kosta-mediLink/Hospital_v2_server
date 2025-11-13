@@ -70,7 +70,7 @@ public class AuthController {
      */
     @GetMapping("/me")
     public ApiResponse<String> me(HttpServletRequest req) {
-        String uuid = AuthSessionUtil.getUuidOrNull(req);
+        String uuid = AuthSessionUtil.getUuid(req);
 
         return ApiResponse.onSuccess(uuid);
     }

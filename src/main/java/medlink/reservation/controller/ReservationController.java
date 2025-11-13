@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import medlink.common.response.ApiResponse;
 import medlink.common.util.AuthSessionUtil;
 import medlink.reservation.dto.request.ReservationRequest;
+import medlink.reservation.dto.response.ReservationResponse;
 import medlink.reservation.dto.response.ReservationTimesResponse;
 import medlink.reservation.service.ReservationService;
 import org.springframework.web.bind.annotation.*;
@@ -39,9 +40,22 @@ public class ReservationController {
             @Valid @RequestBody ReservationRequest request,
             HttpServletRequest req
     ) {
-        String uuid = AuthSessionUtil.getUuidOrNull(req);
+        String uuid = AuthSessionUtil.getUuid(req);
         Long reservationId = reservationService.createReservation(request, uuid);
         return ApiResponse.onSuccess(reservationId);
+    }
+
+    /**
+     * 예약 단건 조회
+     */
+    @GetMapping("/{reservationId}")
+    public ApiResponse<ReservationResponse> getReservation(
+            @PathVariable Long reservationId,
+            HttpServletRequest req
+    ) {
+        String uuid = AuthSessionUtil.getUuid(req);
+        ReservationResponse response = reservationService.getReservation(reservationId, uuid);
+        return ApiResponse.onSuccess(response);
     }
 
 
