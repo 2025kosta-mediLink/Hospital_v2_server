@@ -6,3 +6,16 @@
 ############################################################
 GET {{base}}/doctor/1/available-times?date=2025-11-20
 Accept: application/json
+
+############################################################
+### 2. 예약 생성
+############################################################
+POST {{base}}
+Content-Type: application/json
+Accept: application/json
+Cookie: {{cookie}}
+
+{
+  "doctorId": 1,
+  "reservationTime": "2025-11-20T09:30:00"
+}

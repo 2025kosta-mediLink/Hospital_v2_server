@@ -7,6 +7,9 @@ import medlink.common.exception.GlobalException;
 import medlink.doctor.entity.Doctor;
 import medlink.doctor.entity.DoctorWeeklySchedule;
 import medlink.doctor.service.DoctorService;
+import medlink.member.entity.Member;
+import medlink.member.service.MemberService;
+import medlink.reservation.dto.request.ReservationRequest;
 import medlink.reservation.dto.response.ReservationTimesResponse;
 import medlink.reservation.entity.Reservation;
 import medlink.reservation.enums.ReservationStatus;
@@ -15,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -25,6 +29,7 @@ import java.util.*;
 public class ReservationService {
 
     private final DoctorService doctorService;
+    private final MemberService memberService;
     private final ReservationRepository reservationRepository;
 
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("H:mm");
@@ -67,6 +72,42 @@ public class ReservationService {
 
         return ReservationTimesResponse.of(availableAmTimes, availablePmTimes);
     }
+
+    @Transactional
+    public Long createReservation(ReservationRequest request, String uuid) {
+        // 초/나노 정리
+        LocalDateTime appointmentAt = request.getReservationTime()
+                .withSecond(0)
+                .withNano(0);
+
+        Member member = memberService.getMemberByUuid(uuid);
+        Doctor doctor = doctorService.getDoctorById(request.getDoctorId());
+
+        // 2) 이미 예약된 시간인지 체크
+        boolean exists = reservationRepository.existsByDoctorAndAppointmentAtAndStatus(
+                doctor,
+                appointmentAt,
+                ReservationStatus.RESERVED
+        );
+        if (exists) {
+            throw new GlobalException(ErrorStatus.RESERVATION_TIME_ALREADY_RESERVED);
+        }
+        // DB 유니크 제약 걸어놔서, 겹치면 에러
+        String reservationNo = makeReservationNo();
+
+        // 3) 예약 엔티티 생성 & 저장
+        Reservation reservation = Reservation.of(
+                doctor,
+                member,
+                reservationNo,
+                appointmentAt,
+                ReservationStatus.RESERVED
+        );
+
+        Reservation saved = reservationRepository.save(reservation);
+        return saved.getReservationId();
+    }
+
 
     /** 해당 날짜에 예약된 시간대 조회 */
     @Transactional(readOnly = true)
@@ -126,5 +167,11 @@ public class ReservationService {
         if (date.isBefore(today) || date.isAfter(oneMonthLater)) {
             throw new GlobalException(ErrorStatus.RESERVATION_DATE_OUT_OF_RANGE);
         }
+    }
+
+    /** 예약번호 생성: RES-YYYYMMDD-#### */
+    private String makeReservationNo() {
+        return "RES-" + LocalDate.now().toString().replace("-", "")
+                + "-" + String.format("%04d", new Random().nextInt(10000));
     }
 }

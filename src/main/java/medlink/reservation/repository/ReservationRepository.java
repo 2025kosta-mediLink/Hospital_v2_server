@@ -20,4 +20,10 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             LocalDateTime startDateTime,
             LocalDateTime endDateTime,
             ReservationStatus status);
+
+    boolean existsByDoctorAndAppointmentAtAndStatus(
+            Doctor doctor,
+            LocalDateTime appointmentAt,
+            ReservationStatus status
+    );
 }

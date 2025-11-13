@@ -1,7 +1,11 @@
 package medlink.reservation.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import medlink.common.response.ApiResponse;
+import medlink.common.util.AuthSessionUtil;
+import medlink.reservation.dto.request.ReservationRequest;
 import medlink.reservation.dto.response.ReservationTimesResponse;
 import medlink.reservation.service.ReservationService;
 import org.springframework.web.bind.annotation.*;
@@ -26,4 +30,19 @@ public class ReservationController {
                 reservationService.getAvailableReservationTimes(doctorId, date);
         return ApiResponse.onSuccess(availableTimes);
     }
+
+    /**
+     * 예약 생성
+     */
+    @PostMapping
+    public ApiResponse<Long> createReservation(
+            @Valid @RequestBody ReservationRequest request,
+            HttpServletRequest req
+    ) {
+        String uuid = AuthSessionUtil.getUuidOrNull(req);
+        Long reservationId = reservationService.createReservation(request, uuid);
+        return ApiResponse.onSuccess(reservationId);
+    }
+
+
 }

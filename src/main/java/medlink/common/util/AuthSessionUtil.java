@@ -5,6 +5,8 @@ import jakarta.servlet.http.HttpSession;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import medlink.auth.dto.response.MemberSessionResponse;
+import medlink.common.exception.ErrorStatus;
+import medlink.common.exception.GlobalException;
 
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE) // 인스턴스화 방지
@@ -24,7 +26,7 @@ public class AuthSessionUtil {
     }
 
     /**
-     * 로그인 정보 조회 (없으면 null)
+     * 로그인 정보 조회 (없으면 null, 필터에서 에러던짐)
      */
     public static MemberSessionResponse getLoginUserOrNull(HttpServletRequest req) {
         HttpSession session = req.getSession(false);
@@ -38,7 +40,8 @@ public class AuthSessionUtil {
      */
     public static String getUuidOrNull(HttpServletRequest req) {
         MemberSessionResponse user = getLoginUserOrNull(req);
-        return (user == null) ? null : user.getUuid();
+        if (user == null) throw new GlobalException(ErrorStatus.UNAUTHORIZED);
+        return user.getUuid();
     }
 
     /**

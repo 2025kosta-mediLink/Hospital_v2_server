@@ -13,9 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class MemberService {
 
-    private MemberRepository memberRepository;
+    private final MemberRepository memberRepository;
 
-    public Member getByUuid(String uuid) {
+    public Member getMemberByUuid(String uuid) {
         return memberRepository.findByUuid(uuid)
                 .orElseThrow(() -> new GlobalException(ErrorStatus.MEMBER_NOT_FOUND));
     }

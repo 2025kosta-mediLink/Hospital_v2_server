@@ -36,6 +36,7 @@ public enum ErrorStatus {
 
     // RESERVATION
     RESERVATION_DATE_OUT_OF_RANGE("RES501", "예약 가능한 날짜가 아닙니다."),
+    RESERVATION_TIME_ALREADY_RESERVED("RES502", "이미 예약된 시간입니다."),
     ;
 
 
