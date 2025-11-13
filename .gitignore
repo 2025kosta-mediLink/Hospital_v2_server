@@ -60,5 +60,5 @@ out/
 **/._.DS_Store
 
 ### Docker ###
-docker/docker-compose.env
+*.env
 docker/db-data/
