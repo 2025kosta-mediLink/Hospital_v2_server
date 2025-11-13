@@ -11,11 +11,10 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
   session:
-    store-type: none   # Redis 세션 비활성화
-
+    store-type: none
   data:
     redis:
-      host: localhost  # 필요 없다면 쓰지 않아도 됨
+      host: localhost
 
 logging:
   level:
@@ -23,3 +22,9 @@ logging:
 
 cors:
   allowed-origin: http://localhost:3000
+
+swagger:
+  auth:
+    whitelist:
+      - /api/v2/auth/**
+      - /swagger-ui/**
