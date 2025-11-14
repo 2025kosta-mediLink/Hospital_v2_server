@@ -32,7 +32,7 @@ public class DoctorController {
     }
 
     /**
-     * 의사별 공지사항 조회
+     * 의사별 공지사항 목록 조회
      */
     @GetMapping("/{doctorId}/notices")
     public ApiResponse<List<DoctorNoticeResponse>> getDoctorNotices(
