@@ -13,9 +13,11 @@ import medlink.reservation.dto.request.ReservationRequest;
 import medlink.reservation.dto.response.ReservationListResponse;
 import medlink.reservation.dto.response.ReservationResponse;
 import medlink.reservation.dto.response.ReservationTimesResponse;
+import medlink.reservation.dto.response.TodayReservationListResponse;
 import medlink.reservation.entity.Reservation;
 import medlink.reservation.enums.ReservationStatus;
 import medlink.reservation.repository.ReservationRepository;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -142,7 +144,9 @@ public class ReservationService {
         }
 
         List<Reservation> reservations =
-                reservationRepository.findAllByMemberAndFilters(member, startAt, endAt, status);
+                reservationRepository.findAllByMemberAndFilters(
+                        member, startAt, endAt, status,
+                        Sort.by(Sort.Direction.DESC, "appointmentAt"));
 
         if (reservations.isEmpty()) {
             throw new GlobalException(ErrorStatus.RESERVATION_NOT_REGISTERED);
@@ -170,6 +174,32 @@ public class ReservationService {
         return reservedTimeSet;
     }
 
+    @Transactional(readOnly = true)
+    public List<TodayReservationListResponse> getTodayReservations(String uuid) {
+        Member member = memberService.getMemberByUuid(uuid);
+
+        LocalDate today = LocalDate.now();  // 서버 기준 오늘
+        LocalDateTime startAt = today.atStartOfDay();
+        LocalDateTime endAt = today.plusDays(1).atStartOfDay();
+
+        List<Reservation> reservations =
+                reservationRepository.findAllByMemberAndFilters(
+                        member,
+                        startAt,
+                        endAt,
+                        ReservationStatus.RESERVED,
+                        Sort.by(Sort.Direction.ASC, "appointmentAt")
+                );
+
+        if (reservations.isEmpty()) {
+            throw new GlobalException(ErrorStatus.RESERVATION_NOT_REGISTERED);
+        }
+
+        return reservations.stream()
+                .map(TodayReservationListResponse::from)
+                .toList();
+    }
+
     @Transactional
     public void cancelReservation(Long reservationId, String uuid) {
         // 1) 로그인 회원 조회
@@ -191,7 +221,7 @@ public class ReservationService {
 
         // 5) 취소 처리
         Reservation canceledReservation = Reservation.updateStatus(
-                reservation, ReservationStatus.CANCELED);
+                reservation, ReservationStatus.CANCELLED);
         reservationRepository.save(canceledReservation);
     }
 

@@ -9,6 +9,7 @@ import medlink.reservation.dto.request.ReservationRequest;
 import medlink.reservation.dto.response.ReservationListResponse;
 import medlink.reservation.dto.response.ReservationResponse;
 import medlink.reservation.dto.response.ReservationTimesResponse;
+import medlink.reservation.dto.response.TodayReservationListResponse;
 import medlink.reservation.enums.ReservationStatus;
 import medlink.reservation.service.ReservationService;
 import org.springframework.web.bind.annotation.*;
@@ -74,6 +75,19 @@ public class ReservationController {
         String uuid = AuthSessionUtil.getUuid(httpReq);
         List<ReservationListResponse> list =
                 reservationService.getReservationList(uuid, year, month, status);
+        return ApiResponse.onSuccess(list);
+    }
+
+    /**
+     * 오늘의 예약 목록 조회
+     */
+    @GetMapping("/today")
+    public ApiResponse<List<TodayReservationListResponse>> getTodayReservations(
+            HttpServletRequest httpReq
+    ) {
+        String uuid = AuthSessionUtil.getUuid(httpReq);
+        List<TodayReservationListResponse> list =
+                reservationService.getTodayReservations(uuid);
         return ApiResponse.onSuccess(list);
     }
 
