@@ -6,12 +6,15 @@ import lombok.RequiredArgsConstructor;
 import medlink.common.response.ApiResponse;
 import medlink.common.util.AuthSessionUtil;
 import medlink.reservation.dto.request.ReservationRequest;
+import medlink.reservation.dto.response.ReservationListResponse;
 import medlink.reservation.dto.response.ReservationResponse;
 import medlink.reservation.dto.response.ReservationTimesResponse;
+import medlink.reservation.enums.ReservationStatus;
 import medlink.reservation.service.ReservationService;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -38,9 +41,9 @@ public class ReservationController {
     @PostMapping
     public ApiResponse<Long> createReservation(
             @Valid @RequestBody ReservationRequest request,
-            HttpServletRequest req
+            HttpServletRequest httpReq
     ) {
-        String uuid = AuthSessionUtil.getUuid(req);
+        String uuid = AuthSessionUtil.getUuid(httpReq);
         Long reservationId = reservationService.createReservation(request, uuid);
         return ApiResponse.onSuccess(reservationId);
     }
@@ -51,12 +54,26 @@ public class ReservationController {
     @GetMapping("/{reservationId}")
     public ApiResponse<ReservationResponse> getReservation(
             @PathVariable Long reservationId,
-            HttpServletRequest req
+            HttpServletRequest httpReq
     ) {
-        String uuid = AuthSessionUtil.getUuid(req);
+        String uuid = AuthSessionUtil.getUuid(httpReq);
         ReservationResponse response = reservationService.getReservation(reservationId, uuid);
         return ApiResponse.onSuccess(response);
     }
 
-
+    /**
+     * 나의 예약 목록 조회
+     */
+    @GetMapping("/list")
+    public ApiResponse<List<ReservationListResponse>> getReservationList(
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) ReservationStatus status,
+            HttpServletRequest httpReq
+    ) {
+        String uuid = AuthSessionUtil.getUuid(httpReq);
+        List<ReservationListResponse> list =
+                reservationService.getReservationList(uuid, year, month, status);
+        return ApiResponse.onSuccess(list);
+    }
 }

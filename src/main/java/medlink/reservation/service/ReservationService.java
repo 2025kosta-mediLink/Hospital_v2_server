@@ -10,6 +10,7 @@ import medlink.doctor.service.DoctorService;
 import medlink.member.entity.Member;
 import medlink.member.service.MemberService;
 import medlink.reservation.dto.request.ReservationRequest;
+import medlink.reservation.dto.response.ReservationListResponse;
 import medlink.reservation.dto.response.ReservationResponse;
 import medlink.reservation.dto.response.ReservationTimesResponse;
 import medlink.reservation.entity.Reservation;
@@ -120,6 +121,38 @@ public class ReservationService {
         }
         return ReservationResponse.from(reservation);
     }
+
+    @Transactional(readOnly = true)
+    public List<ReservationListResponse> getReservationList(
+            String uuid,
+            Integer year,
+            Integer month,
+            ReservationStatus status
+    ) {
+        Member member = memberService.getMemberByUuid(uuid);
+
+        // 1) year/month 로 월 범위 설정
+        LocalDateTime startAt = null;
+        LocalDateTime endAt = null;
+        if (year != null && month != null) {
+            LocalDate startDate = LocalDate.of(year, month, 1);
+            LocalDate endDate = startDate.plusMonths(1);  // 다음 달 1일
+            startAt = startDate.atStartOfDay();
+            endAt = endDate.atStartOfDay();
+        }
+
+        List<Reservation> reservations =
+                reservationRepository.findAllByMemberAndFilters(member, startAt, endAt, status);
+
+        if (reservations.isEmpty()) {
+            throw new GlobalException(ErrorStatus.RESERVATION_NOT_REGISTERED);
+        }
+
+        return reservations.stream()
+                .map(ReservationListResponse::from)
+                .toList();
+    }
+
 
     /** 해당 날짜에 예약된 시간대 조회 */
     @Transactional(readOnly = true)
