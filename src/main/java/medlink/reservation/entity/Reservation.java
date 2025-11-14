@@ -49,4 +49,15 @@ public class Reservation extends BaseTimeEntity {
                 .status(status)
                 .build();
     }
+
+    public static Reservation updateStatus(Reservation reservation, ReservationStatus status) {
+        return Reservation.builder()
+                .reservationId(reservation.reservationId)
+                .doctor(reservation.doctor)
+                .member(reservation.member)
+                .reservationNo(reservation.reservationNo)
+                .appointmentAt(reservation.appointmentAt)
+                .status(status)
+                .build();
+    }
 }

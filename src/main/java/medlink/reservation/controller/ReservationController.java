@@ -76,4 +76,17 @@ public class ReservationController {
                 reservationService.getReservationList(uuid, year, month, status);
         return ApiResponse.onSuccess(list);
     }
+
+    /**
+     * 예약 취소
+     */
+    @PostMapping("/{reservationId}/cancel")
+    public ApiResponse<Void> cancelReservation(
+            @PathVariable Long reservationId,
+            HttpServletRequest httpReq
+    ) {
+        String uuid = AuthSessionUtil.getUuid(httpReq);
+        reservationService.cancelReservation(reservationId, uuid);
+        return ApiResponse.onSuccess(null);
+    }
 }

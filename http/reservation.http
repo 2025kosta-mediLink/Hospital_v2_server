@@ -23,7 +23,7 @@ Cookie: {{cookie}}
 ############################################################
 ### 3. 예약 단건 조회
 ############################################################
-GET {{base}}/82
+GET {{base}}/85
 Accept: application/json
 Cookie: {{cookie}}
 
@@ -44,6 +44,13 @@ Cookie: {{cookie}}
 ############################################################
 ### 4.3 내 예약 리스트 (2025년 1월, RESERVED만)
 ############################################################
-GET {{base}}/list?year=2025&month=11&status=CANCELLED
+GET {{base}}/list?year=2025&month=11&status=CANCELED
+Accept: application/json
+Cookie: {{cookie}}
+
+############################################################
+### 5. 예약 취소
+############################################################
+POST {{base}}/85/cancel
 Accept: application/json
 Cookie: {{cookie}}

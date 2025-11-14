@@ -39,9 +39,11 @@ public enum ErrorStatus {
     RESERVATION_TIME_ALREADY_RESERVED("RES502", "이미 예약된 시간입니다."),
     RESERVATION_NOT_FOUND("RES503", "예약을 찾을 수 없습니다."),
     RESERVATION_ACCESS_FORBIDDEN("RES504", "예약에 접근할 권한이 없습니다."),
-    RESERVATION_NOT_REGISTERED("RES505", "등록된 예약이 없습니다.");
-
-
+    RESERVATION_NOT_REGISTERED("RES505", "등록된 예약이 없습니다."),
+    RESERVATION_ACCESS_DENIED("RES506", "본인의 예약만 취소할 수 있습니다."),
+    RESERVATION_CANNOT_CANCEL("RES507", "해당 상태에서는 예약 취소가 불가능합니다."),
+    ;
+    
     private final HttpStatus httpStatus;
     private final String code;
     private final String message;

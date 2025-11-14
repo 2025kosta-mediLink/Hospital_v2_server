@@ -170,6 +170,31 @@ public class ReservationService {
         return reservedTimeSet;
     }
 
+    @Transactional
+    public void cancelReservation(Long reservationId, String uuid) {
+        // 1) 로그인 회원 조회
+        Member member = memberService.getMemberByUuid(uuid);
+
+        // 2) 예약 조회
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new GlobalException(ErrorStatus.RESERVATION_NOT_FOUND));
+
+        // 3) 내 예약인지 검증 (memberId 기준)
+        if (!reservation.getMember().getMemberId().equals(member.getMemberId())) {
+            throw new GlobalException(ErrorStatus.RESERVATION_ACCESS_DENIED);
+        }
+
+        // 4) 상태 검사: RESERVED 인 경우에만 취소 가능
+        if (reservation.getStatus() != ReservationStatus.RESERVED) {
+            throw new GlobalException(ErrorStatus.RESERVATION_CANNOT_CANCEL);
+        }
+
+        // 5) 취소 처리
+        Reservation canceledReservation = Reservation.updateStatus(
+                reservation, ReservationStatus.CANCELED);
+        reservationRepository.save(canceledReservation);
+    }
+
     /** 예약된 시간을 제외한 가능한 30분 간격 슬롯을 생성 */
     // 항상 startTime, endTime 은 같은 날짜 내에 있다고 가정
     private List<String> makeAvailableReservationSlots(
