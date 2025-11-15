@@ -75,7 +75,7 @@ public class ReceptionController {
 
     // ==== helpers ====
     private String requireUuid(HttpServletRequest req) {
-        String uuid = AuthSessionUtil.getUuidOrNull(req);
+        String uuid = AuthSessionUtil.getUuid(req);
         if (uuid == null) throw new GlobalException(ErrorStatus.UNAUTHORIZED);
         return uuid;
     }

@@ -72,7 +72,7 @@ public class AuthController {
      */
     @GetMapping("/me")
     public ApiResponse<String> me(HttpServletRequest req) {
-        String uuid = AuthSessionUtil.getUuidOrNull(req);
+        String uuid = AuthSessionUtil.getUuid(req);
         if (uuid == null) throw new GlobalException(ErrorStatus.UNAUTHORIZED);
         return ApiResponse.onSuccess(uuid);
     }

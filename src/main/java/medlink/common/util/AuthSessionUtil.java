@@ -36,7 +36,7 @@ public class AuthSessionUtil {
     /**
      * uuid만 필요할 때
      */
-    public static String getUuidOrNull(HttpServletRequest req) {
+    public static String getUuid(HttpServletRequest req) {
         MemberSessionResponse user = getLoginUserOrNull(req);
         return (user == null) ? null : user.getUuid();
     }
