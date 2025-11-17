@@ -2,8 +2,9 @@ HEHELP.md
 HELP.md
 .gradle
 build/
+*.jar
 !gradle/wrapper/gradle-wrapper.jar
-!gradle-wrapper.properties
+!gradle/wrapper/gradle-wrapper.properties
 !**/src/main/**/build/
 !**/src/test/**/build/
 /src/main/generated/
@@ -26,7 +27,6 @@ bin/
 ### Java ###
 *.class
 *.log
-*.jar
 *.war
 *.nar
 *.ear
@@ -59,3 +59,6 @@ out/
 **/.DS_Store
 **/._.DS_Store
 
+### Docker ###
+*.env
+docker/db-data/

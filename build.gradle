@@ -37,6 +37,8 @@ dependencies {
 	implementation 'org.springframework.session:spring-session-data-redis'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.12"
+
+	testImplementation 'com.h2database:h2'
 }
 
 tasks.named('test') {
