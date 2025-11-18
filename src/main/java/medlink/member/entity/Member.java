@@ -41,7 +41,7 @@ public class Member extends BaseTimeEntity {
     @Column(length = 100, nullable = false)
     private String address;
 
-    @Column(length = 14, nullable = false)
+    @Column(nullable = false, columnDefinition = "CHAR(14)")
     private String rrn;
 
     private LocalDateTime deleteAt;

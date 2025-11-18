@@ -31,9 +31,26 @@ public class DispensingApiController {
             @PathVariable String dispensingId,
             @RequestBody Map<String, String> payload
     ) {
-        String receivedAtString = payload.getOrDefault("receivedAt", LocalDateTime.now().toString());
-        dispensingService.completeReceipt(dispensingId, LocalDateTime.parse(receivedAtString));
-        return ResponseEntity.ok(Map.of("success", Boolean.TRUE));
+        try {
+            LocalDateTime receivedAt;
+            if (payload != null && payload.containsKey("receivedAt") && payload.get("receivedAt") != null) {
+                String receivedAtString = payload.get("receivedAt");
+                // ISO 형식 (예: 2024-01-01T12:00:00.000Z) 또는 일반 형식 파싱
+                try {
+                    receivedAt = LocalDateTime.parse(receivedAtString.replace("Z", "").replace("z", ""));
+                } catch (Exception e) {
+                    // 파싱 실패 시 현재 시간 사용
+                    receivedAt = LocalDateTime.now();
+                }
+            } else {
+                receivedAt = LocalDateTime.now();
+            }
+            
+            dispensingService.completeReceipt(dispensingId, receivedAt);
+            return ResponseEntity.ok(Map.of("success", Boolean.TRUE));
+        } catch (Exception e) {
+            throw new RuntimeException("수령 완료 처리 중 오류 발생: " + e.getMessage(), e);
+        }
     }
 }
 
