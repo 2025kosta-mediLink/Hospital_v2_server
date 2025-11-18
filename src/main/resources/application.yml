@@ -40,7 +40,11 @@ cors:
   allowed-origin: ${CORS_ALLOWED_ORIGIN:http://localhost:5173,http://localhost:5174}
 
 kakao:
-  rest-api-key: ${KAKAO_REST_API_KEY:af11d187f48df0ed2268e7e2afbbfc45}
+  rest-api-key: ${KAKAO_REST_API_KEY:371a027cd1dac68dce2424d2ac0fd3ca}
+
+  mobility:
+    rest-api-key: ${KAKAO_MOBILITY_REST_API_KEY:af11d187f48df0ed2268e7e2afbbfc45}
+
 
 logging:
   level:
