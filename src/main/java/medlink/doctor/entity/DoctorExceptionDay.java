@@ -26,6 +26,7 @@ public class DoctorExceptionDay extends BaseTimeEntity {
     @Column(nullable = false)
     private LocalDate exceptionDate;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 20, nullable = false)
     private ExceptionDayType type;
 }
