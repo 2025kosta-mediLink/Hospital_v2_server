@@ -55,10 +55,13 @@ public class DoctorService {
         Doctor doctor = getDoctorById(doctorId);
         List<DoctorNotice> notices =
                 noticeRepository.findActiveNoticesByDoctor(doctor, LocalDateTime.now());
-        if (notices.isEmpty()) {
-            throw new GlobalException(ErrorStatus.DOCTOR_NOTICE_NOT_REGISTERED);
-        }
 
+        // 프론트 axios 에러로 인한 주석처리(해당 의사의 공지사항이 없어도 에러처리 하지 않음)
+//        if (notices.isEmpty()) {
+//            throw new GlobalException(ErrorStatus.DOCTOR_NOTICE_NOT_REGISTERED);
+//        }
+
+      // 공지사항이 없어도 빈 리스트 반환 (정상 응답)
         return notices.stream()
                 .map(DoctorNoticeResponse::from)
                 .toList();
