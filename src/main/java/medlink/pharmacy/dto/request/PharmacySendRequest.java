@@ -13,5 +13,6 @@ import java.util.List;
 @Builder
 public class PharmacySendRequest {
 	private String pharmacyId;
+	private String pharmacyName;
 	private List<Long> prescriptionIds;
 }

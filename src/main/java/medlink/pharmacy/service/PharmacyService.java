@@ -2,13 +2,18 @@ package medlink.pharmacy.service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
+import lombok.RequiredArgsConstructor;
 import medlink.pharmacy.dto.response.PharmacyResponse;
+import medlink.pharmacy.repository.PharmacyJdbcRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class PharmacyService {
+
+	private final PharmacyJdbcRepository pharmacyJdbcRepository;
 
 	/**
 	 * 위치 기반 약국 검색.
@@ -28,9 +33,24 @@ public class PharmacyService {
 
 	/**
 	 * 처방전을 약국으로 전송.
-	 * 실제 연동이 없다면 UUID만 생성해서 반환한다.
+	 * pharmacy_prescription 레코드를 생성하고 pharmacy_prescription_id를 반환한다.
 	 */
-	public String sendPrescription(String pharmacyId, List<Long> prescriptionIds) {
-		return UUID.randomUUID().toString();
+	@Transactional
+	public String sendPrescription(String pharmacyId, String pharmacyName, List<Long> prescriptionIds) {
+		if (prescriptionIds == null || prescriptionIds.isEmpty()) {
+			throw new IllegalArgumentException("prescriptionIds must not be empty");
+		}
+		
+		// 첫 번째 처방전 ID를 사용하여 pharmacy_prescription 레코드 생성
+		Long firstPrescriptionId = prescriptionIds.get(0);
+		Long pharmacyPrescriptionId = pharmacyJdbcRepository.createPharmacyPrescription(
+			pharmacyId,
+			pharmacyName,
+			firstPrescriptionId,
+			"START"
+		);
+		
+		// pharmacy_prescription_id를 문자열로 변환하여 반환
+		return String.valueOf(pharmacyPrescriptionId);
 	}
 }

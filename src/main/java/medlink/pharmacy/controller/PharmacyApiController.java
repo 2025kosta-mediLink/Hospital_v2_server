@@ -56,6 +56,7 @@ public class PharmacyApiController {
 	) {
 		String dispensingId = pharmacyService.sendPrescription(
 			request.getPharmacyId(),
+			request.getPharmacyName(),
 			request.getPrescriptionIds()
 		);
 		return ResponseEntity.ok(Map.of(
