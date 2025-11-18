@@ -20,67 +20,80 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class DoctorService {
 
-    private final DepartmentService departmentService;
-    private final DoctorRepository doctorRepository;
-    private final DoctorWeeklyScheduleRepository weeklyScheduleRepository;
-    private final DoctorNoticeRepository noticeRepository;
-    private final DoctorExceptionDayRepository exceptionDayRepository;
+  private final DepartmentService departmentService;
+  private final DoctorRepository doctorRepository;
+  private final DoctorWeeklyScheduleRepository weeklyScheduleRepository;
+  private final DoctorNoticeRepository noticeRepository;
+  private final DoctorExceptionDayRepository exceptionDayRepository;
 
-    public List<DoctorResponse> getDoctorsByDepartmentId(Long departmentId) {
-        Department department = departmentService.getDepartmentById(departmentId);
-        List<Doctor> doctors = doctorRepository.findAllByDepartmentOrderByNameAsc(department);
-        if (doctors.isEmpty()) {
-            throw new GlobalException(ErrorStatus.DOCTOR_NOT_REGISTERED);
-        }
-
-        return doctors.stream()
-                .map(doctor -> {
-                    List<DoctorWeeklySchedule> schedules = weeklyScheduleRepository.findAllByDoctor(doctor);
-                    List<DoctorResponse.ScheduleDTO> scheduleDTOs = schedules.stream()
-                            .map(DoctorResponse::from)
-                            .toList();
-
-                    return DoctorResponse.of(doctor, scheduleDTOs);
-                })
-                .toList();
+  public List<DoctorResponse> getDoctorsByDepartmentId(Long departmentId) {
+    Department department = departmentService.getDepartmentById(departmentId);
+    List<Doctor> doctors = doctorRepository.findAllByDepartmentOrderByNameAsc(department);
+    if (doctors.isEmpty()) {
+      throw new GlobalException(ErrorStatus.DOCTOR_NOT_REGISTERED);
     }
 
-    public List<DoctorNoticeResponse> getDoctorNotices(Long doctorId) {
-        Doctor doctor = getDoctorById(doctorId);
-        List<DoctorNotice> notices =
-                noticeRepository.findActiveNoticesByDoctor(doctor, LocalDateTime.now());
+    return doctors.stream()
+        .map(doctor -> {
+          List<DoctorWeeklySchedule> schedules = weeklyScheduleRepository.findAllByDoctor(doctor);
+          List<DoctorResponse.ScheduleDTO> scheduleDTOs = schedules.stream()
+              .map(DoctorResponse::from)
+              .toList();
 
-        // 프론트 axios 에러로 인한 주석처리(해당 의사의 공지사항이 없어도 에러처리 하지 않음)
+          return DoctorResponse.of(doctor, scheduleDTOs);
+        })
+        .toList();
+  }
+
+  public List<DoctorNoticeResponse> getDoctorNotices(Long doctorId) {
+    Doctor doctor = getDoctorById(doctorId);
+    List<DoctorNotice> notices =
+        noticeRepository.findActiveNoticesByDoctor(doctor, LocalDateTime.now());
+
+    // 프론트 axios 에러로 인한 주석처리(해당 의사의 공지사항이 없어도 에러처리 하지 않음)
 //        if (notices.isEmpty()) {
 //            throw new GlobalException(ErrorStatus.DOCTOR_NOTICE_NOT_REGISTERED);
 //        }
 
-      // 공지사항이 없어도 빈 리스트 반환 (정상 응답)
-        return notices.stream()
-                .map(DoctorNoticeResponse::from)
-                .toList();
-    }
+    // 공지사항이 없어도 빈 리스트 반환 (정상 응답)
+    return notices.stream()
+        .map(DoctorNoticeResponse::from)
+        .toList();
+  }
 
-    public Doctor getDoctorById(Long doctorId) {
-        return doctorRepository.findById(doctorId)
-                .orElseThrow(() -> new GlobalException(ErrorStatus.DOCTOR_NOT_FOUND));
-    }
+  public Doctor getDoctorById(Long doctorId) {
+    return doctorRepository.findById(doctorId)
+        .orElseThrow(() -> new GlobalException(ErrorStatus.DOCTOR_NOT_FOUND));
+  }
 
-    public DoctorWeeklySchedule getDoctorWeeklyScheduleByDayOfWeek(Doctor doctor, int dayOfWeek) {
-        return weeklyScheduleRepository.findByDoctorAndDayOfWeek(doctor, dayOfWeek)
-                .orElseThrow(() -> new GlobalException(ErrorStatus.DOCTOR_WEEKLY_SCHEDULE_NOT_FOUND));
-    }
+  public DoctorWeeklySchedule getDoctorWeeklyScheduleByDayOfWeek(Doctor doctor, int dayOfWeek) {
+    return weeklyScheduleRepository.findByDoctorAndDayOfWeek(doctor, dayOfWeek)
+        .orElseThrow(() -> new GlobalException(ErrorStatus.DOCTOR_WEEKLY_SCHEDULE_NOT_FOUND));
+  }
 
-    public void validateNotDoctorExceptionDay(
-            Doctor doctor, LocalDate date) {
-        if (exceptionDayRepository.existsByDoctorAndExceptionDate(doctor, date)) {
-            throw new GlobalException(ErrorStatus.DOCTOR_ON_EXCEPTION_DAY);
-        }
+  // 새로운 Optional 반환 메서드 추가
+  public Optional<DoctorWeeklySchedule> findDoctorWeeklyScheduleByDayOfWeek(Doctor doctor, int dayOfWeek) {
+    return weeklyScheduleRepository.findByDoctorAndDayOfWeek(doctor, dayOfWeek);
+  }
+
+  public void validateNotDoctorExceptionDay(
+      Doctor doctor, LocalDate date) {
+    if (exceptionDayRepository.existsByDoctorAndExceptionDate(doctor, date)) {
+      throw new GlobalException(ErrorStatus.DOCTOR_ON_EXCEPTION_DAY);
     }
+  }
+
+  // 새로운 체크 메서드 추가 (예외를 던지지 않음)
+  public boolean isDoctorExceptionDay(Doctor doctor, LocalDate date) {
+    return exceptionDayRepository.existsByDoctorAndExceptionDate(doctor, date);
+  }
+
+
 }
