@@ -21,10 +21,15 @@ public class KakaoRouteService {
     private final RestTemplate restTemplate = new RestTemplate();
 
     public KakaoRouteResponse getRoute(KakaoRouteRequest request) {
-        log.info("경로 요청: {} -> {}, type: {}", 
+        // 도보 경로만 지원
+        if (request.getType() == null || !"foot".equalsIgnoreCase(request.getType())) {
+            log.warn("도보 경로만 지원합니다. 요청된 type: {}, 도보 경로로 변경합니다.", request.getType());
+            request.setType("foot");
+        }
+
+        log.info("경로 요청 (도보): {} -> {}", 
             request.getStartLatitude() + "," + request.getStartLongitude(),
-            request.getEndLatitude() + "," + request.getEndLongitude(),
-            request.getType());
+            request.getEndLatitude() + "," + request.getEndLongitude());
 
         String url = "https://apis-navi.kakaomobility.com/v1/directions";
 
@@ -34,15 +39,8 @@ public class KakaoRouteService {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
                 .queryParam("origin", request.getStartLongitude() + "," + request.getStartLatitude())
                 .queryParam("destination", request.getEndLongitude() + "," + request.getEndLatitude());
-
-        // 도보 경로의 경우 priority 파라미터를 사용하지 않거나 올바른 값 사용
-        // 카카오 모빌리티 API의 priority 값: RECOMMEND (기본값), SHORTEST (최단거리), FASTEST (최단시간)
-        // 도보 경로는 기본적으로 최단거리 경로를 반환하므로 priority를 생략하거나 SHORTEST 사용
-        if (!"foot".equalsIgnoreCase(request.getType())) {
-            // 자동차 경로인 경우에만 priority 설정
-            builder.queryParam("priority", "RECOMMEND");
-        }
-        // 도보 경로는 priority 파라미터를 사용하지 않음
+        
+        // 도보 경로만 사용 (priority 파라미터 없이 기본 최단거리 경로 사용)
 
         String requestUrl = builder.toUriString();
         log.info("카카오 모빌리티 API 요청 URL: {}", requestUrl);
