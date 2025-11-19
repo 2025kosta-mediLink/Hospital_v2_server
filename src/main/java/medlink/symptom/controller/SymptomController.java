@@ -23,11 +23,7 @@ public class SymptomController {
   private final SymptomService symptomService;
 
   @GetMapping
-  public ApiResponse<List<SymptomResponse>> getSymptoms(HttpServletRequest req) {
-
-    String uuid = AuthSessionUtil.getUuid(req);
-    if (uuid == null) throw new GlobalException(ErrorStatus.UNAUTHORIZED);
-
+  public ApiResponse<List<SymptomResponse>> getSymptoms() {
     return ApiResponse.onSuccess(symptomService.getSymptoms());
   }
 

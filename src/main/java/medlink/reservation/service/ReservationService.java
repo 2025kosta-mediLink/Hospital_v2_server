@@ -155,13 +155,17 @@ public class ReservationService {
       endAt = endDate.atStartOfDay();
     }
 
+    // 2) 필터링 조회
     List<Reservation> reservations =
         reservationRepository.findAllByMemberAndFilters(
             member, startAt, endAt, status,
             Sort.by(Sort.Direction.DESC, "appointmentAt"));
 
     if (reservations.isEmpty()) {
-      throw new GlobalException(ErrorStatus.RESERVATION_NOT_REGISTERED);
+//      throw new GlobalException(ErrorStatus.RESERVATION_NOT_REGISTERED);  상태에 해당하는 데이터가 없어도 나오도록 주석처리
+      log.info("예약 내역 없음 - uuid: {}, year: {}, month: {}, status: {}",
+          uuid, year, month, status);
+      return Collections.emptyList();
     }
 
     return reservations.stream()
