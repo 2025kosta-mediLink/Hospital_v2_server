@@ -78,7 +78,7 @@ public class DispensingJdbcRepository {
             // dispensingId를 BIGINT로 변환
             Long pharmacyPrescriptionId = Long.parseLong(dispensingId);
             
-            // 1. pharmacy_prescription 상태 업데이트
+            // 1. pharmacy_prescription 상태 업데이트  
             String updateSql = """
                     UPDATE pharmacy_prescription
                     SET status = 'RECEIVED_BY_USER',
