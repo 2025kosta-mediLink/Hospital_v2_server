@@ -31,28 +31,29 @@ public class PrescriptionJdbcRepository {
                     p.prescription_id,
                     dep.name AS department_name,
                     doc.name AS doctor_name,
-                    p.issued_at AS treatment_date,
+                    COALESCE(p.issued_at, COALESCE(r.updated_at, r.created_at)) AS treatment_date,
                     COALESCE(MAX(pp.status), 'START') AS status,
                     COALESCE(MAX(pp.pharmacy_name), MAX(p.pharmacy_name), MAX(pp.assigned_pharmacist)) AS pharmacy_name,
                     COALESCE(MAX(ph.pickup_at), MAX(p.completed_date)) AS completed_date,
-                    MAX(p.completed) AS completed,
+                    COALESCE(MAX(p.completed), FALSE) AS completed,
                     CASE 
                         WHEN MAX(p.completed) = true THEN FALSE
+                        WHEN p.prescription_id IS NULL THEN TRUE
                         WHEN MAX(pp.status) IS NULL OR MAX(pp.status) = 'START' THEN TRUE
                         ELSE FALSE
                     END AS can_select,
-                    MAX(p.created_at) AS created_at,
-                    MAX(p.updated_at) AS updated_at
-                FROM prescription p
-                JOIN reception r ON p.reception_id = r.reception_id
+                    COALESCE(MAX(p.created_at), r.created_at) AS created_at,
+                    COALESCE(MAX(p.updated_at), r.updated_at) AS updated_at
+                FROM reception r
                 JOIN doctor doc ON r.doctor_id = doc.doctor_id
                 JOIN department dep ON doc.department_id = dep.department_id
+                LEFT JOIN prescription p ON p.reception_id = r.reception_id
                 LEFT JOIN pharmacy_prescription pp ON p.prescription_id = pp.prescription_id
                 LEFT JOIN pickup_history ph ON pp.pharmacy_prescription_id = ph.pharmacy_prescription_id
                 WHERE r.member_id = :memberId
                     AND r.status = 'DONE'
-                GROUP BY p.prescription_id, dep.name, doc.name, p.issued_at
-                ORDER BY p.issued_at DESC
+                GROUP BY p.prescription_id, dep.name, doc.name, r.reception_id, r.updated_at, r.created_at
+                ORDER BY COALESCE(p.issued_at, COALESCE(r.updated_at, r.created_at)) DESC
                 """;
 
         return jdbcTemplate.query(sql, new MapSqlParameterSource("memberId", memberId), new PrescriptionRowMapper());
@@ -155,6 +156,9 @@ public class PrescriptionJdbcRepository {
 
         @Override
         public PrescriptionResponse mapRow(@NonNull ResultSet rs, int rowNum) throws SQLException {
+            // prescription_id가 null인 경우 처방전이 없는 접수내역
+            Long prescriptionId = rs.getObject("prescription_id", Long.class);
+            
             Timestamp completedTimestamp = rs.getTimestamp("completed_date");
             LocalDateTime completedAt = completedTimestamp != null ? completedTimestamp.toLocalDateTime() : null;
 
@@ -165,7 +169,7 @@ public class PrescriptionJdbcRepository {
             }
 
             PrescriptionResponse.Row row = new PrescriptionResponse.Row(
-                    rs.getLong("prescription_id"),
+                    prescriptionId,
                     rs.getString("department_name"),
                     rs.getString("doctor_name"),
                     treatmentDate,
