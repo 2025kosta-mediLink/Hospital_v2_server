@@ -16,7 +16,7 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/prescriptions/dispensing")
+@RequestMapping("/api/v2/prescriptions/dispensing")
 public class DispensingApiController {
 
     private final DispensingService dispensingService;

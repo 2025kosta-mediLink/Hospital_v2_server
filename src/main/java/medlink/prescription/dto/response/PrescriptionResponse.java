@@ -17,6 +17,7 @@ import lombok.NoArgsConstructor;
 public class PrescriptionResponse {
 
     private Long prescriptionId;
+    private Long receptionId;
     private String departmentName;
     private String doctorName;
     private String treatmentDate;
@@ -29,6 +30,7 @@ public class PrescriptionResponse {
     public static PrescriptionResponse from(Row row) {
         return PrescriptionResponse.builder()
                 .prescriptionId(row.prescriptionId())
+                .receptionId(row.receptionId())
                 .departmentName(row.departmentName())
                 .doctorName(row.doctorName())
                 .treatmentDate(row.treatmentDate())
@@ -42,6 +44,7 @@ public class PrescriptionResponse {
 
     public record Row(
             Long prescriptionId,
+            Long receptionId,
             String departmentName,
             String doctorName,
             String treatmentDate,

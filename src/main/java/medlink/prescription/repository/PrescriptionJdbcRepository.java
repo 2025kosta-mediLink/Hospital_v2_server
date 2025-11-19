@@ -7,6 +7,8 @@ import medlink.prescription.dto.response.PrescriptionResponse;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
@@ -24,11 +26,82 @@ public class PrescriptionJdbcRepository {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
+    /**
+     * 처방전이 없는 접수내역에 대해 처방전을 생성
+     * @param receptionId 접수내역 ID
+     * @return 생성된 처방전 ID
+     */
+    public Long createPrescriptionForReception(Long receptionId) {
+        String sql = """
+                INSERT INTO prescription (reception_id, doctor_id, issued_at, content, pharmacy_name, completed_date, completed, created_at, updated_at)
+                SELECT 
+                    r.reception_id,
+                    r.doctor_id,
+                    COALESCE(r.updated_at, r.created_at) AS issued_at,
+                    NULL AS content,
+                    NULL AS pharmacy_name,
+                    NULL AS completed_date,
+                    FALSE AS completed,
+                    NOW() AS created_at,
+                    NOW() AS updated_at
+                FROM reception r
+                WHERE r.reception_id = :receptionId
+                    AND r.status = 'DONE'
+                    AND NOT EXISTS (
+                        SELECT 1 FROM prescription p 
+                        WHERE p.reception_id = r.reception_id
+                    )
+                """;
+        
+        MapSqlParameterSource params = new MapSqlParameterSource("receptionId", receptionId);
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(sql, params, keyHolder, new String[]{"prescription_id"});
+        
+        Number key = keyHolder.getKey();
+        if (key == null) {
+            throw new RuntimeException("Failed to create prescription for reception: " + receptionId);
+        }
+        
+        return key.longValue();
+    }
+
+    /**
+     * prescriptionId로 처방전 존재 여부 확인
+     */
+    public boolean existsPrescription(Long prescriptionId) {
+        String sql = """
+                SELECT COUNT(*) 
+                FROM prescription 
+                WHERE prescription_id = :prescriptionId
+                """;
+        
+        MapSqlParameterSource params = new MapSqlParameterSource("prescriptionId", prescriptionId);
+        Integer count = jdbcTemplate.queryForObject(sql, params, Integer.class);
+        return count != null && count > 0;
+    }
+
+    /**
+     * receptionId로 처방전 ID 조회 (없으면 null)
+     */
+    public Long findPrescriptionIdByReceptionId(Long receptionId) {
+        String sql = """
+                SELECT prescription_id 
+                FROM prescription 
+                WHERE reception_id = :receptionId
+                LIMIT 1
+                """;
+        
+        MapSqlParameterSource params = new MapSqlParameterSource("receptionId", receptionId);
+        List<Long> results = jdbcTemplate.query(sql, params, (rs, rowNum) -> rs.getLong("prescription_id"));
+        return results.isEmpty() ? null : results.get(0);
+    }
+
     @SuppressWarnings("NullableProblems")
     public List<PrescriptionResponse> findByMemberId(Long memberId) {
         String sql = """
                 SELECT 
                     p.prescription_id,
+                    r.reception_id,
                     dep.name AS department_name,
                     doc.name AS doctor_name,
                     COALESCE(p.issued_at, COALESCE(r.updated_at, r.created_at)) AS treatment_date,
@@ -52,7 +125,7 @@ public class PrescriptionJdbcRepository {
                 LEFT JOIN pickup_history ph ON pp.pharmacy_prescription_id = ph.pharmacy_prescription_id
                 WHERE r.member_id = :memberId
                     AND r.status = 'DONE'
-                GROUP BY p.prescription_id, dep.name, doc.name, r.reception_id, r.updated_at, r.created_at
+                GROUP BY p.prescription_id, r.reception_id, dep.name, doc.name, r.updated_at, r.created_at
                 ORDER BY COALESCE(p.issued_at, COALESCE(r.updated_at, r.created_at)) DESC
                 """;
 
@@ -168,8 +241,11 @@ public class PrescriptionJdbcRepository {
                 treatmentDate = treatmentTimestamp.toLocalDateTime().toLocalDate().toString();
             }
 
+            Long receptionId = rs.getObject("reception_id", Long.class);
+            
             PrescriptionResponse.Row row = new PrescriptionResponse.Row(
                     prescriptionId,
+                    receptionId,
                     rs.getString("department_name"),
                     rs.getString("doctor_name"),
                     treatmentDate,
