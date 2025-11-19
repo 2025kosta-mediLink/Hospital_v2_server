@@ -24,6 +24,7 @@ public class PrescriptionResponse {
     private String status;
     private String pharmacyName;
     private LocalDateTime completedAt;
+    private LocalDateTime receivedAt;
     private boolean canSelect;
     private boolean completed;
 
@@ -37,6 +38,7 @@ public class PrescriptionResponse {
                 .status(row.status())
                 .pharmacyName(row.pharmacyName())
                 .completedAt(row.completedAt())
+                .receivedAt(row.receivedAt())
                 .canSelect(row.canSelect())
                 .completed(row.completed())
                 .build();
@@ -51,6 +53,7 @@ public class PrescriptionResponse {
             String status,
             String pharmacyName,
             LocalDateTime completedAt,
+            LocalDateTime receivedAt,
             boolean canSelect,
             boolean completed
     ) {}

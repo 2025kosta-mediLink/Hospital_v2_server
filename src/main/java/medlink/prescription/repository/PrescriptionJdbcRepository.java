@@ -108,9 +108,11 @@ public class PrescriptionJdbcRepository {
                     COALESCE(MAX(pp.status), 'START') AS status,
                     COALESCE(MAX(pp.pharmacy_name), MAX(p.pharmacy_name), MAX(pp.assigned_pharmacist)) AS pharmacy_name,
                     COALESCE(MAX(ph.pickup_at), MAX(p.completed_date)) AS completed_date,
+                    MAX(ph.pickup_at) AS received_at,
                     COALESCE(MAX(p.completed), FALSE) AS completed,
                     CASE 
                         WHEN MAX(p.completed) = true THEN FALSE
+                        WHEN MAX(ph.pickup_at) IS NOT NULL THEN FALSE
                         WHEN p.prescription_id IS NULL THEN TRUE
                         WHEN MAX(pp.status) IS NULL OR MAX(pp.status) = 'START' THEN TRUE
                         ELSE FALSE
@@ -235,6 +237,9 @@ public class PrescriptionJdbcRepository {
             Timestamp completedTimestamp = rs.getTimestamp("completed_date");
             LocalDateTime completedAt = completedTimestamp != null ? completedTimestamp.toLocalDateTime() : null;
 
+            Timestamp receivedTimestamp = rs.getTimestamp("received_at");
+            LocalDateTime receivedAt = receivedTimestamp != null ? receivedTimestamp.toLocalDateTime() : null;
+
             Timestamp treatmentTimestamp = rs.getTimestamp("treatment_date");
             String treatmentDate = null;
             if (treatmentTimestamp != null) {
@@ -252,6 +257,7 @@ public class PrescriptionJdbcRepository {
                     rs.getString("status"),
                     rs.getString("pharmacy_name"),
                     completedAt,
+                    receivedAt,
                     rs.getBoolean("can_select"),
                     rs.getBoolean("completed")
             );
