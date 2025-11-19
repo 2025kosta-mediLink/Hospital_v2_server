@@ -1,6 +1,7 @@
 package medlink.pharmacy.controller;
 
 import lombok.RequiredArgsConstructor;
+import medlink.pharmacy.dto.request.PharmacySendRequest;
 import medlink.pharmacy.dto.response.PharmacyResponse;
 import medlink.pharmacy.service.PharmacyService;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+
 
 import java.util.List;
 import java.util.Map;
@@ -48,24 +50,20 @@ public class PharmacyApiController {
                 ));
     }
 
-    @PostMapping
-    public ResponseEntity<Map<String, Object>> send(
-            @RequestBody Map<String, Object> payload
-    ) {
-        String pharmacyId = (String) payload.get("pharmacyId");
-        @SuppressWarnings("unchecked")
-        List<Integer> prescriptions = (List<Integer>) payload.getOrDefault("prescriptionIds", List.of());
-
-        var ids = prescriptions.stream()
-                .map(Integer::longValue)
-                .toList();
-
-        String dispensingId = pharmacyService.sendPrescription(pharmacyId, ids);
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "dispensingId", dispensingId
-        ));
-    }
+	@PostMapping
+	public ResponseEntity<Map<String, Object>> send(
+		@RequestBody PharmacySendRequest request
+	) {
+		String dispensingId = pharmacyService.sendPrescription(
+			request.getPharmacyId(),
+			request.getPharmacyName(),
+			request.getPrescriptionIds()
+		);
+		return ResponseEntity.ok(Map.of(
+			"success", true,
+			"dispensingId", dispensingId
+		));
+	}
 }
 
 

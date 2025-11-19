@@ -14,9 +14,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -34,17 +32,17 @@ public class PrescriptionJdbcRepository {
                     dep.name AS department_name,
                     doc.name AS doctor_name,
                     p.issued_at AS treatment_date,
-                    COALESCE(pp.status, 'START') AS status,
-                    COALESCE(pp.assigned_pharmacist, p.pharmacy_name) AS pharmacy_name,
-                    COALESCE(ph.pickup_at, p.completed_date) AS completed_date,
-                    p.completed,
+                    COALESCE(MAX(pp.status), 'START') AS status,
+                    COALESCE(MAX(pp.pharmacy_name), MAX(p.pharmacy_name), MAX(pp.assigned_pharmacist)) AS pharmacy_name,
+                    COALESCE(MAX(ph.pickup_at), MAX(p.completed_date)) AS completed_date,
+                    MAX(p.completed) AS completed,
                     CASE 
-                        WHEN p.completed = true THEN FALSE
-                        WHEN pp.status IS NULL OR pp.status = 'START' THEN TRUE
+                        WHEN MAX(p.completed) = true THEN FALSE
+                        WHEN MAX(pp.status) IS NULL OR MAX(pp.status) = 'START' THEN TRUE
                         ELSE FALSE
                     END AS can_select,
-                    p.created_at,
-                    p.updated_at
+                    MAX(p.created_at) AS created_at,
+                    MAX(p.updated_at) AS updated_at
                 FROM prescription p
                 JOIN reception r ON p.reception_id = r.reception_id
                 JOIN doctor doc ON r.doctor_id = doc.doctor_id
@@ -53,6 +51,7 @@ public class PrescriptionJdbcRepository {
                 LEFT JOIN pickup_history ph ON pp.pharmacy_prescription_id = ph.pharmacy_prescription_id
                 WHERE r.member_id = :memberId
                     AND r.status = 'DONE'
+                GROUP BY p.prescription_id, dep.name, doc.name, p.issued_at
                 ORDER BY p.issued_at DESC
                 """;
 
@@ -65,60 +64,90 @@ public class PrescriptionJdbcRepository {
             return;
         }
 
-        if (request.getStatus() != null) {
-            String updatePharmacyPrescription = """
-                    UPDATE pharmacy_prescription
-                    SET status = :status,
-                        updated_at = NOW()
-                    WHERE prescription_id = :prescriptionId
-                    ORDER BY updated_at DESC
-                    LIMIT 1
-                    """;
+        try {
+            if (request.getStatus() != null) {
+                String updatePharmacyPrescription = """
+                        UPDATE pharmacy_prescription
+                        SET status = :status,
+                            updated_at = NOW()
+                        WHERE prescription_id = :prescriptionId
+                        ORDER BY updated_at DESC
+                        LIMIT 1
+                        """;
 
-            MapSqlParameterSource params = new MapSqlParameterSource()
-                    .addValue("status", request.getStatus())
-                    .addValue("prescriptionId", prescriptionId);
+                MapSqlParameterSource params = new MapSqlParameterSource()
+                        .addValue("status", request.getStatus())
+                        .addValue("prescriptionId", prescriptionId);
 
-            jdbcTemplate.update(updatePharmacyPrescription, params);
-        }
+                int updatedRows = jdbcTemplate.update(updatePharmacyPrescription, params);
+                log.info("Updated pharmacy_prescription status for prescriptionId={}, updatedRows={}", prescriptionId, updatedRows);
+            }
 
-        if (request.getPharmacyName() != null || request.getCompletedAt() != null) {
-            String updatePrescriptionSql = """
-                    UPDATE prescription 
-                    SET pharmacy_name = COALESCE(:pharmacyName, pharmacy_name),
-                        completed_date = COALESCE(:completedAt, completed_date),
-                        completed = CASE WHEN :completedAt IS NULL THEN completed ELSE TRUE END,
-                        updated_at = NOW()
-                    WHERE prescription_id = :prescriptionId
-                    """;
+            if (request.getPharmacyName() != null || request.getCompletedAt() != null) {
+                String updatePrescriptionSql = """
+                        UPDATE prescription 
+                        SET pharmacy_name = COALESCE(:pharmacyName, pharmacy_name),
+                            completed_date = COALESCE(:completedAt, completed_date),
+                            completed = CASE WHEN :completedAt IS NULL THEN completed ELSE TRUE END,
+                            updated_at = NOW()
+                        WHERE prescription_id = :prescriptionId
+                        """;
 
-            MapSqlParameterSource params = new MapSqlParameterSource()
-                    .addValue("pharmacyName", request.getPharmacyName())
-                    .addValue("completedAt", request.getCompletedAt())
-                    .addValue("prescriptionId", prescriptionId);
+                Timestamp completedAtTimestamp = null;
+                if (request.getCompletedAt() != null) {
+                    try {
+                        completedAtTimestamp = Timestamp.valueOf(request.getCompletedAt());
+                    } catch (Exception e) {
+                        log.error("Failed to convert completedAt to Timestamp: {}", request.getCompletedAt(), e);
+                        throw new IllegalArgumentException("Invalid completedAt format: " + request.getCompletedAt(), e);
+                    }
+                }
 
-            jdbcTemplate.update(updatePrescriptionSql, params);
-        }
+                MapSqlParameterSource params = new MapSqlParameterSource()
+                        .addValue("pharmacyName", request.getPharmacyName())
+                        .addValue("completedAt", completedAtTimestamp)
+                        .addValue("prescriptionId", prescriptionId);
 
-        if (request.getCompletedAt() != null) {
-            String insertPickupHistory = """
-                    INSERT INTO pickup_history (pharmacy_prescription_id, pickup_at, verified_by, created_at)
-                    SELECT pp.pharmacy_prescription_id,
-                           :pickupAt,
-                           :verifiedBy,
-                           NOW()
-                    FROM pharmacy_prescription pp
-                    WHERE pp.prescription_id = :prescriptionId
-                    ORDER BY pp.updated_at DESC
-                    LIMIT 1
-                    """;
+                int updatedRows = jdbcTemplate.update(updatePrescriptionSql, params);
+                log.info("Updated prescription for prescriptionId={}, updatedRows={}", prescriptionId, updatedRows);
+            }
 
-            Map<String, Object> params = new HashMap<>();
-            params.put("pickupAt", request.getCompletedAt());
-            params.put("verifiedBy", Optional.ofNullable(request.getPharmacyName()).orElse("SYSTEM"));
-            params.put("prescriptionId", prescriptionId);
+            if (request.getCompletedAt() != null) {
+                String insertPickupHistory = """
+                        INSERT INTO pickup_history (pharmacy_prescription_id, member_id, pickup_at, status, verified_by, created_at)
+                        SELECT pp.pharmacy_prescription_id,
+                               r.member_id,
+                               :pickupAt,
+                               'PICKED_UP',
+                               :verifiedBy,
+                               NOW()
+                        FROM pharmacy_prescription pp
+                        JOIN prescription p ON pp.prescription_id = p.prescription_id
+                        JOIN reception r ON p.reception_id = r.reception_id
+                        WHERE pp.prescription_id = :prescriptionId
+                        ORDER BY pp.updated_at DESC
+                        LIMIT 1
+                        """;
 
-            jdbcTemplate.update(insertPickupHistory, params);
+                Timestamp pickupAtTimestamp;
+                try {
+                    pickupAtTimestamp = Timestamp.valueOf(request.getCompletedAt());
+                } catch (Exception e) {
+                    log.error("Failed to convert completedAt to Timestamp for pickup_history: {}", request.getCompletedAt(), e);
+                    throw new IllegalArgumentException("Invalid completedAt format: " + request.getCompletedAt(), e);
+                }
+
+                MapSqlParameterSource params = new MapSqlParameterSource()
+                        .addValue("pickupAt", pickupAtTimestamp)
+                        .addValue("verifiedBy", Optional.ofNullable(request.getPharmacyName()).orElse("SYSTEM"))
+                        .addValue("prescriptionId", prescriptionId);
+
+                int insertedRows = jdbcTemplate.update(insertPickupHistory, params);
+                log.info("Inserted pickup_history for prescriptionId={}, insertedRows={}", prescriptionId, insertedRows);
+            }
+        } catch (Exception e) {
+            log.error("Failed to update prescription status for prescriptionId={}", prescriptionId, e);
+            throw new RuntimeException("처방전 상태 업데이트 실패: " + e.getMessage(), e);
         }
     }
 

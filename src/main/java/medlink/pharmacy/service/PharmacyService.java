@@ -2,45 +2,55 @@ package medlink.pharmacy.service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
+import lombok.RequiredArgsConstructor;
 import medlink.pharmacy.dto.response.PharmacyResponse;
+import medlink.pharmacy.repository.PharmacyJdbcRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-/**
- * 약국 검색/상세/전송 비즈니스 로직.
- *
- * <p>현재는 외부 공공 API를 프런트에서 직접 호출하고 있기 때문에, 서버에서는
- * 별도의 데이터베이스 접근 없이 빈 결과를 내려주도록 처리한다.
- * API 연동이 필요해질 경우, 이 클래스에서 RestTemplate/WebClient 등을 이용해
- * 외부 API를 호출하도록 확장하면 된다.</p>
- */
 @Service
+@RequiredArgsConstructor
 public class PharmacyService {
 
-    /**
-     * 위치 기반 약국 검색.
-     * 현재는 프런트에서 외부 API를 호출하므로 빈 리스트 반환.
-     */
-    public List<PharmacyResponse> searchNearby(double latitude, double longitude, int radiusMeters) {
-        return List.of();
-    }
+	private final PharmacyJdbcRepository pharmacyJdbcRepository;
 
-    /**
-     * 약국 상세 조회.
-     * 외부 API 연동 전까지는 empty 반환.
-     */
-    public Optional<PharmacyResponse> getDetail(String pharmacyId) {
-        return Optional.empty();
-    }
+	/**
+	 * 위치 기반 약국 검색.
+	 * hospital_v1처럼 프론트엔드에서 카카오 API를 직접 호출하므로 빈 리스트 반환.
+	 */
+	public List<PharmacyResponse> searchNearby(double latitude, double longitude, int radiusMeters) {
+		return List.of();
+	}
 
-    /**
-     * 처방전을 약국으로 전송.
-     * 실제 연동이 없다면 UUID만 생성해서 반환한다.
-     */
-    public String sendPrescription(String pharmacyId, List<Long> prescriptionIds) {
-        return UUID.randomUUID().toString();
-    }
+	/**
+	 * 약국 상세 조회.
+	 * 외부 API 연동 전까지는 empty 반환.
+	 */
+	public Optional<PharmacyResponse> getDetail(String pharmacyId) {
+		return Optional.empty();
+	}
+
+	/**
+	 * 처방전을 약국으로 전송.
+	 * pharmacy_prescription 레코드를 생성하고 pharmacy_prescription_id를 반환한다.
+	 */
+	@Transactional
+	public String sendPrescription(String pharmacyId, String pharmacyName, List<Long> prescriptionIds) {
+		if (prescriptionIds == null || prescriptionIds.isEmpty()) {
+			throw new IllegalArgumentException("prescriptionIds must not be empty");
+		}
+		
+		// 첫 번째 처방전 ID를 사용하여 pharmacy_prescription 레코드 생성
+		Long firstPrescriptionId = prescriptionIds.get(0);
+		Long pharmacyPrescriptionId = pharmacyJdbcRepository.createPharmacyPrescription(
+			pharmacyId,
+			pharmacyName,
+			firstPrescriptionId,
+			"START"
+		);
+		
+		// pharmacy_prescription_id를 문자열로 변환하여 반환
+		return String.valueOf(pharmacyPrescriptionId);
+	}
 }
-
-
