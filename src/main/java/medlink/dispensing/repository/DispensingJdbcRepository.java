@@ -78,6 +78,7 @@ public class DispensingJdbcRepository {
             // dispensingId를 BIGINT로 변환
             Long pharmacyPrescriptionId = Long.parseLong(dispensingId);
             
+            // 1. pharmacy_prescription 상태 업데이트  
             String updateSql = """
                     UPDATE pharmacy_prescription
                     SET status = 'RECEIVED_BY_USER',
@@ -91,6 +92,52 @@ public class DispensingJdbcRepository {
             if (updatedRows == 0) {
                 log.warn("No pharmacy_prescription record found with id: {}", pharmacyPrescriptionId);
                 throw new IllegalArgumentException("조제 정보를 찾을 수 없습니다. dispensingId=" + dispensingId);
+            }
+            
+            // 2. pickup_history에 데이터 INSERT (이미 있으면 업데이트)
+            String insertPickupHistorySql = """
+                    INSERT INTO pickup_history (pharmacy_prescription_id, member_id, pickup_at, status, verified_by, created_at)
+                    SELECT 
+                        pp.pharmacy_prescription_id,
+                        r.member_id,
+                        :pickupAt,
+                        'PICKED_UP',
+                        COALESCE(pp.pharmacy_name, 'SYSTEM'),
+                        NOW()
+                    FROM pharmacy_prescription pp
+                    JOIN prescription p ON pp.prescription_id = p.prescription_id
+                    JOIN reception r ON p.reception_id = r.reception_id
+                    WHERE pp.pharmacy_prescription_id = :pharmacyPrescriptionId
+                        AND NOT EXISTS (
+                            SELECT 1 FROM pickup_history ph 
+                            WHERE ph.pharmacy_prescription_id = pp.pharmacy_prescription_id
+                        )
+                    """;
+            
+            Timestamp pickupAtTimestamp = Timestamp.valueOf(completedAt);
+            int insertedRows = jdbcTemplate.update(insertPickupHistorySql, new MapSqlParameterSource()
+                    .addValue("pharmacyPrescriptionId", pharmacyPrescriptionId)
+                    .addValue("pickupAt", pickupAtTimestamp));
+            
+            if (insertedRows > 0) {
+                log.info("Inserted pickup_history for pharmacyPrescriptionId={}", pharmacyPrescriptionId);
+            } else {
+                // 이미 존재하는 경우 업데이트
+                String updatePickupHistorySql = """
+                        UPDATE pickup_history
+                        SET pickup_at = :pickupAt,
+                            status = 'PICKED_UP',
+                            verified_by = COALESCE((SELECT pharmacy_name FROM pharmacy_prescription WHERE pharmacy_prescription_id = :pharmacyPrescriptionId), 'SYSTEM')
+                        WHERE pharmacy_prescription_id = :pharmacyPrescriptionId
+                        """;
+                
+                int updatedPickupRows = jdbcTemplate.update(updatePickupHistorySql, new MapSqlParameterSource()
+                        .addValue("pharmacyPrescriptionId", pharmacyPrescriptionId)
+                        .addValue("pickupAt", pickupAtTimestamp));
+                
+                if (updatedPickupRows > 0) {
+                    log.info("Updated pickup_history for pharmacyPrescriptionId={}", pharmacyPrescriptionId);
+                }
             }
             
             log.info("Successfully marked pharmacy_prescription {} as RECEIVED_BY_USER", pharmacyPrescriptionId);
