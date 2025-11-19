@@ -21,7 +21,7 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/prescriptions/pharmacies")
+@RequestMapping("/api/v2/prescriptions/pharmacies")
 public class PharmacyApiController {
 
     private final PharmacyService pharmacyService;

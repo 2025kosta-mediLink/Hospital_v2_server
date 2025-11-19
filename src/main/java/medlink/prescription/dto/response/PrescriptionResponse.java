@@ -17,24 +17,28 @@ import lombok.NoArgsConstructor;
 public class PrescriptionResponse {
 
     private Long prescriptionId;
+    private Long receptionId;
     private String departmentName;
     private String doctorName;
     private String treatmentDate;
     private String status;
     private String pharmacyName;
     private LocalDateTime completedAt;
+    private LocalDateTime receivedAt;
     private boolean canSelect;
     private boolean completed;
 
     public static PrescriptionResponse from(Row row) {
         return PrescriptionResponse.builder()
                 .prescriptionId(row.prescriptionId())
+                .receptionId(row.receptionId())
                 .departmentName(row.departmentName())
                 .doctorName(row.doctorName())
                 .treatmentDate(row.treatmentDate())
                 .status(row.status())
                 .pharmacyName(row.pharmacyName())
                 .completedAt(row.completedAt())
+                .receivedAt(row.receivedAt())
                 .canSelect(row.canSelect())
                 .completed(row.completed())
                 .build();
@@ -42,12 +46,14 @@ public class PrescriptionResponse {
 
     public record Row(
             Long prescriptionId,
+            Long receptionId,
             String departmentName,
             String doctorName,
             String treatmentDate,
             String status,
             String pharmacyName,
             LocalDateTime completedAt,
+            LocalDateTime receivedAt,
             boolean canSelect,
             boolean completed
     ) {}
