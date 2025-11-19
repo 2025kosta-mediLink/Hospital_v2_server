@@ -50,14 +50,23 @@ public class Reservation extends BaseTimeEntity {
                 .build();
     }
 
-    public static Reservation updateStatus(Reservation reservation, ReservationStatus status) {
-        return Reservation.builder()
-                .reservationId(reservation.reservationId)
-                .doctor(reservation.doctor)
-                .member(reservation.member)
-                .reservationNo(reservation.reservationNo)
-                .appointmentAt(reservation.appointmentAt)
-                .status(status)
-                .build();
-    }
+//    public static Reservation updateStatus(Reservation reservation, ReservationStatus status) {
+//        return Reservation.builder()
+//                .reservationId(reservation.reservationId)
+//                .doctor(reservation.doctor)
+//                .member(reservation.member)
+//                .reservationNo(reservation.reservationNo)
+//                .appointmentAt(reservation.appointmentAt)
+//                .status(status)
+//                .build();
+//    }
+
+  /**
+   * 예약 상태 변경 (인스턴스 메서드로 변경)
+   */
+  public void updateStatus(ReservationStatus newStatus) {
+    this.status = newStatus;
+  }
+
+
 }

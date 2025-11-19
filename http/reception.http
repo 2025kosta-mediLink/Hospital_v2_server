@@ -116,7 +116,7 @@ Accept: application/json
 Cookie: {{cookie}}
 
 {
-  "reservationId": 56,
+  "reservationId": 67,
   "symptomIds": [1, 2],
   "noteToDoctor": "어제부터 두통, 미열",
   "consentNotice": true

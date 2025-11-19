@@ -13,6 +13,7 @@ public class TodayReservationListResponse {
     private long reservationId;
     private String reservationNo;
     private String departmentName;
+    private long doctorId;
     private String doctorName;
     private String reservationTime;
 
@@ -20,6 +21,7 @@ public class TodayReservationListResponse {
         return TodayReservationListResponse.builder()
                 .reservationId(reservation.getReservationId())
                 .reservationNo(reservation.getReservationNo())
+                .doctorId(reservation.getDoctor().getDoctorId())
                 .departmentName(reservation.getDoctor().getDepartment().getName())
                 .doctorName(reservation.getDoctor().getName())
                 .reservationTime(
