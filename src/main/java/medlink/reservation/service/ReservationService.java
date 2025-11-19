@@ -210,7 +210,9 @@ public class ReservationService {
         );
 
     if (reservations.isEmpty()) {
-      throw new GlobalException(ErrorStatus.RESERVATION_NOT_REGISTERED);
+//      throw new GlobalException(ErrorStatus.RESERVATION_NOT_REGISTERED);
+      return Collections.emptyList();  // 빈 리스트 반환
+
     }
 
     return reservations.stream()
@@ -243,8 +245,8 @@ public class ReservationService {
 //    reservationRepository.save(canceledReservation);
 
     // 5) 취소 처리 (인스턴스 메서드로 변경)
-    // JPA 더티 체킹으로 자동 업데이트되므로 save() 불필요
     reservation.updateStatus(ReservationStatus.CANCELLED);
+    reservationRepository.save(reservation);  // 명시적 save 호출
 
   }
 

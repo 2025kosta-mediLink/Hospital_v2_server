@@ -1,6 +1,7 @@
 package medlink.reception.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import medlink.common.exception.ErrorStatus;
 import medlink.common.exception.GlobalException;
 import medlink.doctor.entity.Doctor;
@@ -36,6 +37,7 @@ import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j  // 이 어노테이션이 있는지 확인!
 public class ReceptionService {
 
   private final MemberRepository memberRepository;
@@ -257,8 +259,9 @@ public class ReceptionService {
         .toList();
     receptionSymptomRepository.saveAll(links);
 
-//     11) 예약 상태 변경 (RESERVED(예약완료) -> DONE(접수완료))
-     reservation.updateStatus(ReservationStatus.DONE);
+//  11) 예약 상태 변경 (RESERVED(예약완료) -> DONE(접수완료))
+    reservation.updateStatus(ReservationStatus.DONE);
+    reservationRepository.save(reservation);
 
     return reception.getReceptionId();
   }
