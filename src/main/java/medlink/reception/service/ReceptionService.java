@@ -257,8 +257,8 @@ public class ReceptionService {
         .toList();
     receptionSymptomRepository.saveAll(links);
 
-    // 11) 필요하면 예약 상태 변경 (예: CHECKED_IN 등)
-    // reservation.updateStatus(ReservationStatus.CHECKED_IN);
+//     11) 예약 상태 변경 (RESERVED(예약완료) -> DONE(접수완료))
+     reservation.updateStatus(ReservationStatus.DONE);
 
     return reception.getReceptionId();
   }

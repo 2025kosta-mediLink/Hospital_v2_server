@@ -237,10 +237,15 @@ public class ReservationService {
       throw new GlobalException(ErrorStatus.RESERVATION_CANNOT_CANCEL);
     }
 
-    // 5) 취소 처리
-    Reservation canceledReservation = Reservation.updateStatus(
-        reservation, ReservationStatus.CANCELLED);
-    reservationRepository.save(canceledReservation);
+    // 5) 취소 처리 (해당 있던 주석처리)
+//    Reservation canceledReservation = Reservation.updateStatus(
+//        reservation, ReservationStatus.CANCELLED);
+//    reservationRepository.save(canceledReservation);
+
+    // 5) 취소 처리 (인스턴스 메서드로 변경)
+    // JPA 더티 체킹으로 자동 업데이트되므로 save() 불필요
+    reservation.updateStatus(ReservationStatus.CANCELLED);
+
   }
 
   /**
