@@ -31,10 +31,10 @@ spring:
     redis:
       namespace: medlink:sessions  # 키 prefix
 
-    data:
-      redis:
-        host: localhost
-        port: 6379
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 cors:
   allowed-origin: ${CORS_ALLOWED_ORIGIN:http://localhost:5173,http://localhost:5174}

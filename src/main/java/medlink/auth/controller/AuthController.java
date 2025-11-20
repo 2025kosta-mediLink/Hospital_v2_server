@@ -5,10 +5,12 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import medlink.auth.dto.request.LoginRequest;
 import medlink.auth.dto.request.SignUpRequest;
+import medlink.auth.dto.response.MemberInfoResponse;
 import medlink.auth.dto.response.MemberSessionResponse;
 import medlink.auth.service.AuthService;
 import medlink.common.response.ApiResponse;
 import medlink.common.util.AuthSessionUtil;
+import medlink.member.service.MemberService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final MemberService memberService;
 
     /**
      * 아이디 중복 체크
@@ -66,12 +69,19 @@ public class AuthController {
     }
 
     /**
-     * 로그인 사용자 uuid 추출 방식
+     * 로그인 사용자 정보 조회
      */
     @GetMapping("/me")
-    public ApiResponse<String> me(HttpServletRequest req) {
+    public ApiResponse<MemberInfoResponse> me(HttpServletRequest req) {
         String uuid = AuthSessionUtil.getUuid(req);
+        var member = memberService.getMemberByUuid(uuid);
+        
+        MemberInfoResponse memberInfo = MemberInfoResponse.of(
+            member.getUuid(),
+            member.getLoginId(),
+            member.getName()
+        );
 
-        return ApiResponse.onSuccess(uuid);
+        return ApiResponse.onSuccess(memberInfo);
     }
 }
