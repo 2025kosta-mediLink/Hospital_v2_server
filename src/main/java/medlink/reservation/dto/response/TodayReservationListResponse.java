@@ -26,8 +26,7 @@ public class TodayReservationListResponse {
                 .doctorName(reservation.getDoctor().getName())
                 .reservationTime(
                         reservation.getAppointmentAt()
-                                .toLocalTime()
-                                .format(DateTimeFormatter.ofPattern("HH:mm"))
+                                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"))
                 )
                 .build();
     }
