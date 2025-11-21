@@ -10,12 +10,14 @@ public class MemberInfoResponse {
     private String uuid;
     private String loginId;
     private String name;
+    private String rrn;
 
-    public static MemberInfoResponse of(String uuid, String loginId, String name) {
+    public static MemberInfoResponse of(String uuid, String loginId, String name, String rrn) {
         return MemberInfoResponse.builder()
                 .uuid(uuid)
                 .loginId(loginId)
                 .name(name)
+                .rrn(rrn)
                 .build();
     }
 }
