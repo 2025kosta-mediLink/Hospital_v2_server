@@ -79,7 +79,8 @@ public class AuthController {
         MemberInfoResponse memberInfo = MemberInfoResponse.of(
             member.getUuid(),
             member.getLoginId(),
-            member.getName()
+            member.getName(),
+            member.getRrn()
         );
 
         return ApiResponse.onSuccess(memberInfo);
