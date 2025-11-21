@@ -96,6 +96,9 @@ jobs:
             docker pull $IMAGE_NAME:${{ github.sha }}
             docker tag $IMAGE_NAME:${{ github.sha }} $IMAGE_NAME:$TAG
 
+            export IMAGE_NAME=$IMAGE_NAME
+            export IMAGE_TAG=$TAG
+
             docker compose \
               --env-file $ENV_FILE \
               -f docker-compose.yml \
