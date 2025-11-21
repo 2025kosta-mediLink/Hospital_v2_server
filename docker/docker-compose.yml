@@ -17,6 +17,60 @@ services:
       - db-data:/var/lib/mysql
       - ./initdb/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
       - ./initdb/data.sql:/docker-entrypoint-initdb.d/02-data.sql:ro
+    networks:
+      - hospital-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: hospital-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - hospital-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    image: ${IMAGE_NAME:-medlink/hospital-api}:${IMAGE_TAG:-latest}
+    container_name: hospital-api
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    environment:
+      - JDBC_URL=jdbc:mysql://db:3306/${MYSQL_DATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
+      - DB_USERNAME=${MYSQL_USER}
+      - DB_PASSWORD=${MYSQL_PASSWORD}
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - CORS_ALLOWED_ORIGIN=${CORS_ALLOWED_ORIGIN}
+      - KAKAO_REST_API_KEY=${KAKAO_REST_API_KEY}
+      - KAKAO_MOBILITY_REST_API_KEY=${KAKAO_MOBILITY_REST_API_KEY}
+      - SESSION_COOKIE_SECURE=${SESSION_COOKIE_SECURE:-false}
+      - SESSION_SAMESITE=${SESSION_SAMESITE:-Lax}
+      - DDL_AUTO=${DDL_AUTO:-validate}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - hospital-network
 
 volumes:
   db-data:
+  redis-data:
+
+networks:
+  hospital-network:
+    driver: bridge
