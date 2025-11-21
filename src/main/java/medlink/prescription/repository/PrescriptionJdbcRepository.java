@@ -98,7 +98,7 @@ public class PrescriptionJdbcRepository {
 
     @SuppressWarnings("NullableProblems")
     public List<PrescriptionResponse> findByMemberId(Long memberId) {
-        String sql = """
+            String sql = """
                 SELECT 
                     p.prescription_id,
                     r.reception_id,
@@ -110,6 +110,7 @@ public class PrescriptionJdbcRepository {
                     COALESCE(MAX(ph.pickup_at), MAX(p.completed_date)) AS completed_date,
                     MAX(ph.pickup_at) AS received_at,
                     COALESCE(MAX(p.completed), FALSE) AS completed,
+                    MAX(pp.pharmacy_prescription_id) AS dispensing_id,
                     CASE 
                         WHEN MAX(p.completed) = true THEN FALSE
                         WHEN MAX(ph.pickup_at) IS NOT NULL THEN FALSE
@@ -247,6 +248,7 @@ public class PrescriptionJdbcRepository {
             }
 
             Long receptionId = rs.getObject("reception_id", Long.class);
+            Long dispensingId = rs.getObject("dispensing_id", Long.class);
             
             PrescriptionResponse.Row row = new PrescriptionResponse.Row(
                     prescriptionId,
@@ -256,6 +258,7 @@ public class PrescriptionJdbcRepository {
                     treatmentDate,
                     rs.getString("status"),
                     rs.getString("pharmacy_name"),
+                    dispensingId,
                     completedAt,
                     receivedAt,
                     rs.getBoolean("can_select"),

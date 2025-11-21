@@ -23,6 +23,7 @@ public class PrescriptionResponse {
     private String treatmentDate;
     private String status;
     private String pharmacyName;
+    private Long dispensingId; // pharmacy_prescription_id
     private LocalDateTime completedAt;
     private LocalDateTime receivedAt;
     private boolean canSelect;
@@ -37,6 +38,7 @@ public class PrescriptionResponse {
                 .treatmentDate(row.treatmentDate())
                 .status(row.status())
                 .pharmacyName(row.pharmacyName())
+                .dispensingId(row.dispensingId())
                 .completedAt(row.completedAt())
                 .receivedAt(row.receivedAt())
                 .canSelect(row.canSelect())
@@ -52,6 +54,7 @@ public class PrescriptionResponse {
             String treatmentDate,
             String status,
             String pharmacyName,
+            Long dispensingId, // pharmacy_prescription_id
             LocalDateTime completedAt,
             LocalDateTime receivedAt,
             boolean canSelect,
