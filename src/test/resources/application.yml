@@ -1,3 +1,12 @@
+server:
+  servlet:
+    session:
+      cookie:
+        name: MEDLINKSESSION
+        http-only: true
+        secure: false
+        same-site: Lax
+
 spring:
   datasource:
     url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
@@ -5,26 +14,39 @@ spring:
     username: sa
     password:
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: create-drop
     properties:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
+        format_sql: false
+        highlight_sql: false
   session:
-    store-type: none
+    store-type: none  # 테스트에서는 세션 저장소 사용 안 함
   data:
     redis:
       host: localhost
-
-logging:
-  level:
-    org.hibernate.SQL: INFO
+      port: 6379
 
 cors:
   allowed-origin: http://localhost:3000
 
+kakao:
+  rest-api-key: test-key
+  mobility:
+    rest-api-key: test-mobility-key
+
 swagger:
   auth:
-    whitelist:
-      - /api/v2/auth/**
-      - /swagger-ui/**
+    whitelist: "/login,/logout,/health"
+
+springdoc:
+  swagger-ui:
+    doc-expansion: none
+    persist-authorization: true
+
+logging:
+  level:
+    org.hibernate.SQL: INFO
+    org.springframework: WARN
