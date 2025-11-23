@@ -81,7 +81,7 @@
 ## 4. 개발 문서
 
 ### 📘 화면 설계서
-<details> <summary><strong>화면설계서 보기</strong></summary> <br/> <img width="4534" height="11461" alt="병원 프로젝트 - 최종" src="https://github.com/user-attachments/assets/e734ce3a-54bc-4307-ba11-d9e3f788a2e8" /> </details>
+<details> <summary>화면설계서 보기</summary> <br/> <img width="4534" height="11461" alt="병원 프로젝트 - 최종" src="https://github.com/user-attachments/assets/e734ce3a-54bc-4307-ba11-d9e3f788a2e8" /> </details>
 
 ### 📙 요구사항 정의서  
 [(요구사항 정의서 링크)](https://sugared-visitor-f84.notion.site/277b450e6b2381d8a8e8d2b11c755eb7?source=copy_link)
