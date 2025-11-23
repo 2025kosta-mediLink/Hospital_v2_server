@@ -53,6 +53,11 @@ public enum ErrorStatus {
     RECEPTION_NO_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "RCN605", "접수 번호를 생성할 수 없습니다."),
     RECEPTION_CONSENT_REQUIRED("RCN606", "접수 진행을 위해 동의가 필요합니다."),
     RECEPTION_INVALID_SYMPTOM("RCN607", "유효하지 않은 증상 정보입니다."),
+
+    // Waiting Ticket 관련
+    WAITING_TICKET_NOT_FOUND(HttpStatus.NOT_FOUND, "WAITING_TICKET_404_1", "대기표를 찾을 수 없습니다."),
+    WAITING_TICKET_NOT_WAITING(HttpStatus.BAD_REQUEST, "WAITING_TICKET_400_1", "대기 중인 상태가 아닙니다."),
+    NO_WAITING_PATIENTS(HttpStatus.NOT_FOUND, "WAITING_TICKET_404_2", "대기 중인 환자가 없습니다."),
     ;
     
     private final HttpStatus httpStatus;

@@ -87,12 +87,12 @@ public class ReceptionController {
   ) {
     String uuid = AuthSessionUtil.getUuid(httpReq);
 
-    Long receptionId = receptionService.createReceptionFromReservation(
+    ReceptionIdResponse res = receptionService.createReceptionFromReservation(
         uuid,
         request
     );
 
-    return ApiResponse.onSuccess(ReceptionIdResponse.of(receptionId));
+    return ApiResponse.onSuccess(res);
   }
 
 

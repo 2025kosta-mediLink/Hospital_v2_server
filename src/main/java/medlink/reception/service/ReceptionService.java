@@ -24,6 +24,8 @@ import medlink.reservation.enums.ReservationStatus;
 import medlink.reservation.repository.ReservationRepository;
 import medlink.symptom.entity.Symptom;
 import medlink.symptom.repository.SymptomRepository;
+import medlink.waiting.entity.WaitingTicket;
+import medlink.waiting.enums.WaitingTicketStatus;
 import medlink.waiting.repository.WaitingTicketRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -91,15 +93,16 @@ public class ReceptionService {
         .toList();
     receptionSymptomRepository.saveAll(links);
 
-// Waiting ticket (추후 구현 예정)
-// WaitingTicket ticket = WaitingTicket.builder()
-//         .reception(reception)
-//         .queueNo(assignQueueNoForToday(doctor.getDoctorId()))
-//         .status(WaitingTicketStatus.WAITING)
-//         .build();
-// waitingTicketRepository.save(ticket);
+// Waiting ticket
+ WaitingTicket ticket = WaitingTicket.builder()
+         .reception(reception)
+         .queueNo(assignQueueNoForToday(doctor.getDoctorId()))
+         .status(WaitingTicketStatus.WAITING)
+         .build();
+ waitingTicketRepository.save(ticket);
 
-    return ReceptionIdResponse.of(reception.getReceptionId());
+    // 대기번호 포함해서 반환
+    return ReceptionIdResponse.of(reception.getReceptionId(), ticket.getQueueNo());
   }
 
   /**
@@ -182,7 +185,7 @@ public class ReceptionService {
    * 예약을 기반으로 접수 생성
    */
   @Transactional
-  public Long createReceptionFromReservation(
+  public ReceptionIdResponse createReceptionFromReservation(
       String uuid,
       ReceptionFromReservationCreateRequest request
   ) {
@@ -263,7 +266,15 @@ public class ReceptionService {
     reservation.updateStatus(ReservationStatus.DONE);
     reservationRepository.save(reservation);
 
-    return reception.getReceptionId();
+    // Waiting ticket 생성 추가
+    WaitingTicket ticket = WaitingTicket.builder()
+        .reception(reception)
+        .queueNo(assignQueueNoForToday(doctor.getDoctorId()))
+        .status(WaitingTicketStatus.WAITING)
+        .build();
+    waitingTicketRepository.save(ticket);
+
+    return ReceptionIdResponse.of(reception.getReceptionId(), ticket.getQueueNo());
   }
 
   // ===== util =====
@@ -278,30 +289,30 @@ public class ReceptionService {
   }
 
 // 대기표 관련 Util (추후 대기표 기능 도입 시 활성화)
-//  private int assignQueueNoForToday(Long doctorId) {
-//    LocalDate today = LocalDate.now();
-//    LocalDateTime start = today.atStartOfDay();
-//    LocalDateTime end = today.plusDays(1).atStartOfDay();
-//    int max = waitingTicketRepository.findTodayMaxQueueNo(doctorId, start, end);
-//    return max + 1;
-//  }
+  private int assignQueueNoForToday(Long doctorId) {
+    LocalDate today = LocalDate.now();
+    LocalDateTime start = today.atStartOfDay();
+    LocalDateTime end = today.plusDays(1).atStartOfDay();
+    int max = waitingTicketRepository.findTodayMaxQueueNo(doctorId, start, end);
+    return max + 1;
+  }
 
-//  private static class Range {
-//    final LocalDateTime from, to;
-//
-//    Range(LocalDateTime f, LocalDateTime t) {
-//      this.from = f;
-//      this.to = t;
-//    }
-//  }
+  private static class Range {
+    final LocalDateTime from, to;
 
-//  private Range toRange(String month, String from, String to) {
-//    if (month != null && !month.isBlank()) {
-//      var ym = java.time.YearMonth.parse(month);
-//      return new Range(ym.atDay(1).atStartOfDay(), ym.atEndOfMonth().plusDays(1).atStartOfDay());
-//    }
-//    LocalDateTime f = (from == null || from.isBlank()) ? null : LocalDate.parse(from).atStartOfDay();
-//    LocalDateTime t = (to == null || to.isBlank()) ? null : LocalDate.parse(to).plusDays(1).atStartOfDay();
-//    return new Range(f, t);
-//  }
+    Range(LocalDateTime f, LocalDateTime t) {
+      this.from = f;
+      this.to = t;
+    }
+  }
+
+  private Range toRange(String month, String from, String to) {
+    if (month != null && !month.isBlank()) {
+      var ym = java.time.YearMonth.parse(month);
+      return new Range(ym.atDay(1).atStartOfDay(), ym.atEndOfMonth().plusDays(1).atStartOfDay());
+    }
+    LocalDateTime f = (from == null || from.isBlank()) ? null : LocalDate.parse(from).atStartOfDay();
+    LocalDateTime t = (to == null || to.isBlank()) ? null : LocalDate.parse(to).plusDays(1).atStartOfDay();
+    return new Range(f, t);
+  }
 }
