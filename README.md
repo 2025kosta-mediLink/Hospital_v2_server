@@ -84,19 +84,16 @@
 [Figma UI 설계 링크](https://www.figma.com/design/kGlGBFs66zuWWs3b5MINYa/?node-id=0-1)
 
 ### 📙 요구사항 정의서  
-(Notion 또는 PDF 링크)
+[(요구사항 정의서 링크)](https://sugared-visitor-f84.notion.site/277b450e6b2381d8a8e8d2b11c755eb7?source=copy_link)
 
 ### 📗 ERD 설계서
-https://www.erdcloud.com/d/chHaif24EmAFcaMNW
-<img width="1795" height="533" alt="image" src="https://github.com/user-attachments/assets/d621b16d-b0f2-4ae7-8d65-c9fd4eba90f6" />
-
-
+[(ERD 설계서 링크)](https://www.erdcloud.com/d/chHaif24EmAFcaMNW)
 
 ### 📕 시스템 아키텍처  
 (API 서버, DB, Infra 구성도 이미지 첨부)
 
-### 📒 API 명세서  
-(Swagger 또는 Postman 문서 링크)
+### 📒 API 명세서
+[(API 명세서 링크)](https://sugared-visitor-f84.notion.site/API-1-277b450e6b2381cb8fffdfb676b3af53?source=copy_link)
 
 ---
 
