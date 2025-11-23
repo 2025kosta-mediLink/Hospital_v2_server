@@ -86,8 +86,10 @@
 ### 📙 요구사항 정의서  
 (Notion 또는 PDF 링크)
 
-### 📗 ERD 설계서  
-(ERD 이미지 또는 링크 첨부)<img width="5650" height="3022" alt="Hospital" src="https://github.com/user-attachments/assets/973d57ee-e7f2-4913-a3f6-4b0e9d66f348" />
+### 📗 ERD 설계서
+https://www.erdcloud.com/d/chHaif24EmAFcaMNW
+<img width="1795" height="533" alt="image" src="https://github.com/user-attachments/assets/d621b16d-b0f2-4ae7-8d65-c9fd4eba90f6" />
+
 
 
 ### 📕 시스템 아키텍처  
