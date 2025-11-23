@@ -81,7 +81,7 @@
 ## 4. 개발 문서
 
 ### 📘 화면 설계서  
-[Figma UI 설계 링크](https://www.figma.com/design/kGlGBFs66zuWWs3b5MINYa/?node-id=0-1)
+<img width="4534" height="11461" alt="병원 프로젝트 - 최종" src="https://github.com/user-attachments/assets/e734ce3a-54bc-4307-ba11-d9e3f788a2e8" />
 
 ### 📙 요구사항 정의서  
 [(요구사항 정의서 링크)](https://sugared-visitor-f84.notion.site/277b450e6b2381d8a8e8d2b11c755eb7?source=copy_link)
@@ -90,7 +90,30 @@
 [(ERD 설계서 링크)](https://www.erdcloud.com/d/chHaif24EmAFcaMNW)
 
 ### 📕 시스템 아키텍처  
-(API 서버, DB, Infra 구성도 이미지 첨부)
+```mermaid
+flowchart LR
+    subgraph User["사용자 (Mobile Web)"]
+        BROWSER["브라우저 (모바일 웹)\nReact SPA"]
+    end
+
+    subgraph AWS["AWS 인프라 (EC2)"]
+        NGINX["Nginx\nReverse Proxy"]
+        APP["Spring Boot\nMediLink Backend"]
+        DB["MySQL\n(RDS 또는 EC2 내 설치)"]
+    end
+
+    subgraph External["외부 서비스"]
+        KAKAO["카카오 지도 / 공유하기 API"]
+        PHARMACYAPI["공공데이터포털 약국 API"]
+    end
+
+    BROWSER <-->|HTTPS| NGINX
+    NGINX <-->|HTTP (REST API)| APP
+    APP <-->|JDBC| DB
+
+    APP -->|HTTP| KAKAO
+    APP -->|HTTP| PHARMACYAPI
+```
 
 ### 📒 API 명세서
 [(API 명세서 링크)](https://sugared-visitor-f84.notion.site/API-1-277b450e6b2381cb8fffdfb676b3af53?source=copy_link)
