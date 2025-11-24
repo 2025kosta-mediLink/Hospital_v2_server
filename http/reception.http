@@ -3,7 +3,7 @@
 @reservationBase = {{host}}/reservation
 
 ############################################################
-### 1. 접수 생성 (DIRECT) → receptionId 저장
+### 1. 접수 생성 (DIRECT) → receptionId + queueNo 저장
 ############################################################
 POST {{base}}
 Content-Type: application/json
@@ -23,8 +23,16 @@ Cookie: {{cookie}}
         const data = response.body?.data;
         client.assert(data && (data.receptionId || data.id), "receptionId should be in ApiResponse.data");
         const rid = data.receptionId || data.id;
+        const queueNo = data.queueNo;
+
         client.global.set("receptionId", rid);
-        client.log("receptionId = " + rid);
+        client.global.set("queueNo", queueNo);
+
+        client.log("✅ receptionId = " + rid);
+        client.log("🎫 queueNo = " + queueNo);
+
+        // 대기번호 검증
+        client.assert(queueNo != null && queueNo > 0, "queueNo should be greater than 0");
     });
 %}
 
@@ -65,6 +73,16 @@ Cookie: {{cookie}}
 GET {{base}}/list?year=2025&month=11&status=WAITING
 Accept: application/json
 Cookie: {{cookie}}
+
+> {%
+    client.test("waiting list ok", function () {
+        client.assert(response.status === 200, "200 expected");
+        const list = response.body?.data;
+        if (list && list.length > 0) {
+            client.log("📋 대기 중인 접수 건수: " + list.length);
+        }
+    });
+%}
 
 ############################################################
 ### 4.1 접수 취소
@@ -108,7 +126,7 @@ Accept: application/json
 Cookie: {{cookie}}
 
 ############################################################
-### 6. 오늘 예약 → 접수 생성 (예약 기반 접수)
+### 6. 오늘 예약 → 접수 생성 (예약 기반 접수) + 대기번호
 ############################################################
 POST {{base}}/from-reservation
 Content-Type: application/json
@@ -128,7 +146,48 @@ Cookie: {{cookie}}
         const data = response.body?.data;
         client.assert(data && (data.receptionId || data.id), "receptionId should be in ApiResponse.data");
         const rid = data.receptionId || data.id;
+        const queueNo = data.queueNo;
+
         client.global.set("receptionIdFromReservation", rid);
-        client.log("receptionId(from reservation) = " + rid);
+        client.global.set("queueNoFromReservation", queueNo);
+
+        client.log("✅ receptionId(from reservation) = " + rid);
+        client.log("🎫 queueNo(from reservation) = " + queueNo);
+
+        // 예약 기반 접수도 대기번호 검증
+        client.assert(queueNo != null && queueNo > 0, "queueNo should be greater than 0");
+    });
+%}
+
+############################################################
+### 7. 같은 의사로 여러 건 접수 → 대기번호 증가 확인
+############################################################
+POST {{base}}
+Content-Type: application/json
+Accept: application/json
+Cookie: {{cookie}}
+
+{
+  "doctorId": 1,
+  "symptomIds": [3],
+  "noteToDoctor": "대기번호 증가 테스트",
+  "consentNotice": true
+}
+
+> {%
+    client.test("queue number increases", function () {
+        client.assert(response.status === 201 || response.status === 200, "201 or 200 expected");
+        const data = response.body?.data;
+        const newQueueNo = data.queueNo;
+        const prevQueueNo = client.global.get("queueNo");
+
+        client.log("🎫 이전 대기번호: " + prevQueueNo);
+        client.log("🎫 새 대기번호: " + newQueueNo);
+
+        // 새 대기번호가 이전보다 큰지 확인
+        if (prevQueueNo) {
+            client.assert(newQueueNo > prevQueueNo, "new queueNo should be greater than previous");
+            client.log("✅ 대기번호가 정상적으로 증가했습니다!");
+        }
     });
 %}

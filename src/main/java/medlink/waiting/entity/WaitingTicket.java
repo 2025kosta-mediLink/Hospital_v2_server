@@ -38,5 +38,30 @@ public class WaitingTicket extends BaseTimeEntity {
 
   private LocalDateTime calledAt;
 
+  // === 비즈니스 메서드 ===
+
+  /**
+   * 환자 호출
+   */
+  public void call() {
+    this.status = WaitingTicketStatus.CALLED;
+    this.calledAt = LocalDateTime.now();
+  }
+
+  /**
+   * 상태 변경
+   */
+  public void updateStatus(WaitingTicketStatus newStatus) {
+    this.status = newStatus;
+  }
+
+  /**
+   * 예상 대기 시간 업데이트
+   */
+  public void updateEstimatedWaitTime(int waitingCount) {
+    this.estimatedWaitMinutes = waitingCount * 10; // 1인당 10분 가정
+    this.estimatedCallTime = LocalDateTime.now().plusMinutes(this.estimatedWaitMinutes);
+  }
+
 
 }
