@@ -16,7 +16,7 @@
 ## 1. 프로젝트 개요
 
 ### 🔎 설명
-**MediLink**는 병원 방문 과정(예약 → 접수 → 대기 → 진료 → 처방 → 수령)을  
+**MediLink**는 병원 방문 과정(예약 → 접수 → 대기 → 진료 → 처방 → 처방약 수령)을  
 모바일 웹 환경에서 **원스톱으로 처리할 수 있도록 만든 통합 병원 서비스**입니다.
 
 기존 병원 이용의 복잡함을 해소하고,  
@@ -109,7 +109,14 @@
 ---
 
 ## 5. 🎥 시연 영상
-🎬 **시연 영상 준비 중입니다.**  
-(배포 버전 업로드 후 YouTube 링크 추가 예정)
+<p align="center">
+  <a href="https://youtu.be/zXimlDv9Am8?si=e4rqPdGS71bVBVog" target="_blank">
+    <img
+      src="https://img.youtube.com/vi/zXimlDv9Am8/hqdefault.jpg"
+      alt="MediLink 병원 통합 웹앱 시연 영상"
+    />
+  </a>
+</p>
+
 
 ---
