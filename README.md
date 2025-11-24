@@ -44,6 +44,7 @@
 > 환자 예약 → 접수 → 처방전 수령까지의 전체 UX 플로우  
 (Figma 캡처 또는 대표 화면 이미지 삽입)
 <img width="382" height="814" alt="캡처_2025_11_24_16_30_58_219" src="https://github.com/user-attachments/assets/addd1930-2266-4cb1-b647-b9696a8fe2de" />
+<img width="382" height="814" alt="캡처_2025_11_24_16_31_03_158" src="https://github.com/user-attachments/assets/cbf5de5c-ff2c-48f5-93e4-52feb4898396" />
 
 ---
 
