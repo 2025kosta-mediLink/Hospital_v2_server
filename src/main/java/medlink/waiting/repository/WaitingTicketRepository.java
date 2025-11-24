@@ -11,7 +11,16 @@ import java.util.Optional;
 
 public interface WaitingTicketRepository extends JpaRepository<WaitingTicket, Long> {
 
-  Optional<WaitingTicket> findTopByReception_ReceptionIdOrderByTicketIdDesc(Long receptionId);
+  @Query("""
+        select w from WaitingTicket w
+        join fetch w.reception r
+        join fetch r.doctor d
+        join fetch d.department
+        where r.receptionId = :receptionId
+        order by w.ticketId desc
+        limit 1
+    """)
+  Optional<WaitingTicket> findTopByReception_ReceptionIdOrderByTicketIdDesc(@Param("receptionId") Long receptionId);
 
   @Query(value = """
       select coalesce(max(w.queue_no),0) from waiting_ticket w
